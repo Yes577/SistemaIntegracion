@@ -1,11 +1,34 @@
 # SistemaIntegracion
 
-Para el desarrollo del sistema, el equipo ha decidido utilizar Laravel como framework principal y Azure como plataforma de base de datos y despliegue. Esta elección se basa en criterios de productividad, escalabilidad y facilidad de integración durante las distintas etapas del proyecto.
+Sistema de gestion de usuarios desarrollado con Laravel, Breeze, Tailwind CSS y PostgreSQL en Azure.
 
-Laravel permite avanzar con rapidez en la construcción del sistema, ya que incluye de forma nativa funcionalidades esenciales como autenticación de usuarios, gestión de rutas, controladores, migraciones y manejo de base de datos mediante Eloquent ORM. Esto reduce el tiempo de configuración inicial y facilita mantener una arquitectura organizada bajo el patrón MVC, lo que es clave para trabajar en equipo durante varias sesiones.
+## Stack
 
-Además, Laravel ofrece soporte para middleware, validaciones, manejo de sesiones y seguridad, lo cual permite implementar control de acceso y proteger la aplicación sin necesidad de desarrollar estos componentes desde cero. También facilita futuras integraciones con APIs externas y servicios adicionales.
+- Laravel 12
+- Laravel Breeze
+- Tailwind CSS
+- PostgreSQL Azure
+- Arquitectura MVC
 
-Para la base de datos y despliegue se utilizará Azure, debido a que proporciona una infraestructura escalable, disponibilidad en la nube y fácil administración de servicios. Azure permite configurar bases de datos administradas, realizar despliegues continuos y mantener el sistema accesible sin depender de entornos locales. Esto asegura que el proyecto pueda crecer y mantenerse estable durante el desarrollo y posteriores ampliaciones.
+## Funcionalidades
 
-En conjunto, Laravel y Azure constituyen un stack viable porque permiten cubrir autenticación, arquitectura, base de datos, despliegue e integraciones futuras, garantizando un desarrollo ordenado, seguro y sostenible a lo largo del proyecto.
+- Autenticacion nativa con Breeze
+- Tabla independiente `tipo_rol` para roles
+- Redireccion automatica segun rol
+- Middleware para rutas admin y user
+- Dashboard admin
+- CRUD de usuarios para administradores
+- Dashboard user con panel restringido
+
+## Credenciales iniciales
+
+- Email: `admin@admin.com`
+- Password: `admin123`
+
+## Comandos
+
+```bash
+php artisan migrate
+php artisan db:seed
+php artisan serve
+```
