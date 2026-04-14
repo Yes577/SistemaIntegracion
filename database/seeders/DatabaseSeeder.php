@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             TipoRolSeeder::class,
+            EstadoEventoSeeder::class,
         ]);
 
         User::updateOrCreate([
