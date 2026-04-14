@@ -20,10 +20,6 @@ Sistema de gestion de usuarios desarrollado con Laravel, Breeze, Tailwind CSS y 
 - CRUD de usuarios para administradores
 - Dashboard user con panel restringido
 
-## Credenciales iniciales
-
-- Email: `admin@admin.com`
-- Password: `admin123`
 
 ## Comandos
 
