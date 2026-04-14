@@ -21,9 +21,25 @@
                     <a href="{{ route('admin.dashboard') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.dashboard') ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 hover:bg-slate-700' }}">
                         Dashboard
                     </a>
-                    <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.users.*') ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 hover:bg-slate-700' }}">
-                        Gestion de usuarios
-                    </a>
+                    
+                    <!-- Sistema de Usuarios -->
+                    <div class="mt-6 pt-6 border-t border-slate-700">
+                        <p class="px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-500">Sistema de usuarios</p>
+                        <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.users.*') ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 hover:bg-slate-700' }}">
+                            Gestion de usuarios
+                        </a>
+                    </div>
+                    
+                    <!-- Gestion de Eventos -->
+                    <div class="mt-6 pt-6 border-t border-slate-700">
+                        <p class="px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-500">Gestion de eventos</p>
+                        <a href="{{ route('admin.eventos.create') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.eventos.create') ? 'bg-blue-500 text-white' : 'bg-slate-800 hover:bg-slate-700' }}">
+                            Crear evento
+                        </a>
+                        <a href="{{ route('admin.eventos.index') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.eventos.index') ? 'bg-blue-500 text-white' : 'bg-slate-800 hover:bg-slate-700' }}">
+                            Ver eventos
+                        </a>
+                    </div>
                 </nav>
             </aside>
 

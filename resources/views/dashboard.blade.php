@@ -60,7 +60,7 @@
                 <div class="px-6 py-8 text-center">
                     <p class="text-gray-600">No hay eventos próximos</p>
                     @if(auth()->user()->id_tipo_rol === 1)
-                        <a href="{{ route('eventos.create') }}" class="mt-4 inline-block text-blue-600 hover:text-blue-900 font-medium">
+                        <a href="{{ route('admin.eventos.create') }}" class="mt-4 inline-block text-blue-600 hover:text-blue-900 font-medium">
                             Crear primer evento →
                         </a>
                     @endif

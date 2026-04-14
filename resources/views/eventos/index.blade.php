@@ -7,16 +7,6 @@
                     Lista de todos los eventos del sistema
                 </p>
             </div>
-            @if(auth()->user() && auth()->user()->id_tipo_rol === 1)
-            <div class="mt-4 sm:mt-0">
-                <a href="{{ route('eventos.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                    <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Crear Evento
-                </a>
-            </div>
-            @endif
         </div>
 
         <!-- Events Grid -->
@@ -65,10 +55,10 @@
                                     Ver
                                 </a>
                                 @if(auth()->user() && auth()->user()->id_tipo_rol === 1)
-                                <a href="{{ route('eventos.edit', $evento) }}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                <a href="{{ route('admin.eventos.edit', $evento) }}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
                                     Editar
                                 </a>
-                                <form action="{{ route('eventos.destroy', $evento) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
+                                <form action="{{ route('admin.eventos.destroy', $evento) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900 text-sm font-medium">
@@ -96,7 +86,7 @@
                 <p class="mt-1 text-sm text-gray-600">No hay eventos registrados aún</p>
                 @if(auth()->user() && auth()->user()->id_tipo_rol === 1)
                 <div class="mt-6">
-                    <a href="{{ route('eventos.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    <a href="{{ route('admin.eventos.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                         <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
