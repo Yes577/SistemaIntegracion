@@ -1,8 +1,8 @@
 <x-app-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mb-6">
-            <a href="{{ route('eventos.show', $evento) }}" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
-                ← Volver a evento
+            <a href="{{ route('admin.eventos.index') }}" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                ← Volver a eventos
             </a>
         </div>
 
@@ -12,7 +12,7 @@
                 <p class="mt-1 text-sm text-gray-600">Actualiza la información del evento</p>
             </div>
 
-            <form method="POST" action="{{ route('eventos.update', $evento) }}" class="space-y-6 p-6">
+            <form method="POST" action="{{ route('admin.eventos.update', $evento) }}" class="space-y-6 p-6">
                 @csrf
                 @method('PATCH')
 
@@ -208,7 +208,7 @@
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-between border-t border-gray-200 pt-6">
-                    <a href="{{ route('eventos.show', $evento) }}" class="text-gray-600 hover:text-gray-900 font-medium">
+                    <a href="{{ route('admin.eventos.index') }}" class="text-gray-600 hover:text-gray-900 font-medium">
                         Cancelar
                     </a>
                     <button 

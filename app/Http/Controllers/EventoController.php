@@ -10,11 +10,6 @@ use Illuminate\View\View;
 
 class EventoController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'verified']);
-    }
-
     /**
      * Display a listing of the eventos.
      */
@@ -24,7 +19,8 @@ class EventoController extends Controller
             ->orderBy('fecha', 'desc')
             ->paginate(10);
 
-        return view('eventos.index', compact('eventos'));
+        $viewPath = request()->routeIs('admin.*') ? 'admin.eventos.index' : 'eventos.index';
+        return view($viewPath, compact('eventos'));
     }
 
     /**
@@ -32,10 +28,9 @@ class EventoController extends Controller
      */
     public function create(): View
     {
-        $this->authorize('create', Evento::class);
-
         $estados = EstadoEvento::all();
-        return view('eventos.create', compact('estados'));
+        $viewPath = request()->routeIs('admin.*') ? 'admin.eventos.create' : 'eventos.create';
+        return view($viewPath, compact('estados'));
     }
 
     /**
@@ -43,8 +38,6 @@ class EventoController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('create', Evento::class);
-
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
@@ -81,7 +74,7 @@ class EventoController extends Controller
             ]);
         }
 
-        return redirect()->route('eventos.show', $evento)->with('success', 'Evento creado exitosamente.');
+        return redirect()->route('admin.eventos.index')->with('success', 'Evento creado exitosamente.');
     }
 
     /**
@@ -97,10 +90,9 @@ class EventoController extends Controller
      */
     public function edit(Evento $evento): View
     {
-        $this->authorize('update', $evento);
-
         $estados = EstadoEvento::all();
-        return view('eventos.edit', compact('evento', 'estados'));
+        $viewPath = request()->routeIs('admin.*') ? 'admin.eventos.edit' : 'eventos.edit';
+        return view($viewPath, compact('evento', 'estados'));
     }
 
     /**
@@ -108,8 +100,6 @@ class EventoController extends Controller
      */
     public function update(Request $request, Evento $evento)
     {
-        $this->authorize('update', $evento);
-
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
@@ -156,7 +146,7 @@ class EventoController extends Controller
             $evento->parqueadero->delete();
         }
 
-        return redirect()->route('eventos.show', $evento)->with('success', 'Evento actualizado exitosamente.');
+        return redirect()->route('admin.eventos.index')->with('success', 'Evento actualizado exitosamente.');
     }
 
     /**
@@ -164,9 +154,7 @@ class EventoController extends Controller
      */
     public function destroy(Evento $evento)
     {
-        $this->authorize('delete', $evento);
-
         $evento->delete();
-        return redirect()->route('eventos.index')->with('success', 'Evento eliminado exitosamente.');
+        return redirect()->route('admin.eventos.index')->with('success', 'Evento eliminado exitosamente.');
     }
 }

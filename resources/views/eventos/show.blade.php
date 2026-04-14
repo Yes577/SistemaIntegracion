@@ -18,10 +18,10 @@
                             </div>
                             @if(auth()->user() && auth()->user()->id_tipo_rol === 1)
                             <div class="flex space-x-2 ml-4">
-                                <a href="{{ route('eventos.edit', $evento) }}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                <a href="{{ route('admin.eventos.edit', $evento) }}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                                     Editar
                                 </a>
-                                <form action="{{ route('eventos.destroy', $evento) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
+                                <form action="{{ route('admin.eventos.destroy', $evento) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-gray-50">
