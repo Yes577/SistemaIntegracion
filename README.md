@@ -229,16 +229,13 @@ php artisan tinker Log::info('mensaje')
 ## Variables de Entorno
 
 ```env
-APP_NAME="Sistema de Gestión de Eventos"
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-DB_CONNECTION=sqlite
-DB_DATABASE=database/database.sqlite
-
-MAIL_MAILER=log
-```
+DB_CONNECTION=pgsql
+DB_HOST=oscar.postgres.database.azure.com
+DB_PORT=5432
+DB_DATABASE=postgres
+DB_USERNAME=oscar
+DB_PASSWORD="**********"
+DB_SSLMODE=require
 
 ## Notas Importantes
 
