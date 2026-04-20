@@ -7,74 +7,80 @@
 
         <title>{{ $title ?? 'Panel Administrador' }} | {{ config('app.name', 'Sistema de Gestion') }}</title>
 
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=outfit:400,500,600,700,800|space-grotesk:400,500,700&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-slate-100 text-slate-900">
-        <div class="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
-            <aside class="bg-slate-900 px-6 py-8 text-white">
-                <div class="mb-10">
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Administracion</p>
-                    <h1 class="mt-2 text-2xl font-bold">Sistema de usuarios</h1>
+    <body>
+        <div class="theme-shell theme-grid">
+            <div class="mx-auto grid min-h-screen max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[280px_1fr] lg:px-8">
+                <aside class="glass-panel neon-outline h-fit p-6">
+                    <p class="section-eyebrow">Admin command</p>
+                    <h1 class="mt-5 text-3xl font-black text-white">Circuito maestro</h1>
+                    <p class="mt-3 text-sm text-soft">Gestion central para operadores, eventos y usuarios del ecosistema.</p>
+
+                    <nav class="mt-8 space-y-3">
+                        <a href="{{ route('admin.dashboard') }}" class="topbar-link w-full justify-start {{ request()->routeIs('admin.dashboard') ? 'topbar-link-active' : '' }}">
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+                        <a href="{{ route('admin.users.index') }}" class="topbar-link w-full justify-start {{ request()->routeIs('admin.users.*') ? 'topbar-link-active' : '' }}">
+                            <i class="bi bi-people-fill"></i>
+                            Usuarios
+                        </a>
+                        <a href="{{ route('admin.eventos.index') }}" class="topbar-link w-full justify-start {{ request()->routeIs('admin.eventos.index') ? 'topbar-link-active' : '' }}">
+                            <i class="bi bi-calendar2-week"></i>
+                            Eventos
+                        </a>
+                        <a href="{{ route('admin.eventos.create') }}" class="topbar-link w-full justify-start {{ request()->routeIs('admin.eventos.create') ? 'topbar-link-active' : '' }}">
+                            <i class="bi bi-plus-circle"></i>
+                            Nuevo evento
+                        </a>
+                        <a href="{{ route('dashboard') }}" class="topbar-link w-full justify-start">
+                            <i class="bi bi-arrow-left-circle"></i>
+                            Volver al dashboard
+                        </a>
+                    </nav>
+                </aside>
+
+                <div class="flex min-h-screen flex-col gap-6">
+                    <header class="glass-panel neon-outline px-6 py-5">
+                        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                            <div>
+                                <p class="text-sm uppercase tracking-[0.3em] text-cyan-200">Admin / control tower</p>
+                                <h2 class="mt-2 text-3xl font-black text-white">{{ $header ?? 'Panel administrador' }}</h2>
+                                <p class="mt-2 text-soft">Hola, {{ auth()->user()->name }}. Coordina accesos, usuarios y programacion del distrito.</p>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ route('profile.edit') }}" class="theme-button-secondary">
+                                    <i class="bi bi-sliders"></i>
+                                    Perfil
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="theme-button-danger">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        Cerrar sesion
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main class="flex-1">
+                        @if (session('success'))
+                            <div class="status-banner-success">{{ session('success') }}</div>
+                        @endif
+
+                        @if (session('error'))
+                            <div class="status-banner-danger">{{ session('error') }}</div>
+                        @endif
+
+                        {{ $slot }}
+                    </main>
                 </div>
-
-                <nav class="space-y-2">
-                    <a href="{{ route('admin.dashboard') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.dashboard') ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 hover:bg-slate-700' }}">
-                        Dashboard
-                    </a>
-                    
-                    <!-- Sistema de Usuarios -->
-                    <div class="mt-6 pt-6 border-t border-slate-700">
-                        <p class="px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-500">Sistema de usuarios</p>
-                        <a href="{{ route('admin.users.index') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.users.*') ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 hover:bg-slate-700' }}">
-                            Gestion de usuarios
-                        </a>
-                    </div>
-                    
-                    <!-- Gestion de Eventos -->
-                    <div class="mt-6 pt-6 border-t border-slate-700">
-                        <p class="px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-500">Gestion de eventos</p>
-                        <a href="{{ route('admin.eventos.create') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.eventos.create') ? 'bg-blue-500 text-white' : 'bg-slate-800 hover:bg-slate-700' }}">
-                            Crear evento
-                        </a>
-                        <a href="{{ route('admin.eventos.index') }}" class="block rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.eventos.index') ? 'bg-blue-500 text-white' : 'bg-slate-800 hover:bg-slate-700' }}">
-                            Ver eventos
-                        </a>
-                    </div>
-                </nav>
-            </aside>
-
-            <div class="flex min-h-screen flex-col">
-                <header class="border-b border-slate-200 bg-white">
-                    <div class="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <p class="text-sm text-slate-500">Bienvenido, {{ auth()->user()->name }}</p>
-                            <h2 class="text-2xl font-semibold">{{ $header ?? 'Panel administrador' }}</h2>
-                        </div>
-
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
-                                Cerrar sesion
-                            </button>
-                        </form>
-                    </div>
-                </header>
-
-                <main class="flex-1 px-6 py-8">
-                    @if (session('success'))
-                        <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    @if (session('error'))
-                        <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
-                            {{ session('error') }}
-                        </div>
-                    @endif
-
-                    {{ $slot }}
-                </main>
             </div>
         </div>
     </body>
