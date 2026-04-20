@@ -1,53 +1,56 @@
 <x-guest-layout>
-    <div class="mb-6">
-        <h1 class="text-2xl font-semibold text-gray-900">Crear cuenta</h1>
-        <p class="mt-2 text-sm text-gray-600">Los registros desde este formulario se crean con rol usuario.</p>
-    </div>
-
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
-
+    <div class="space-y-6">
         <div>
-            <x-input-label for="name" value="Nombre" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+            <p class="section-eyebrow">Identity setup</p>
+            <h1 class="mt-4 text-4xl font-black text-white">Crear cuenta</h1>
+            <p class="mt-3 text-soft">Registra un nuevo acceso para entrar al ecosistema de eventos y parqueadero.</p>
         </div>
 
-        <div class="mt-4">
-            <x-input-label for="email" value="Correo electronico" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+        @if ($errors->any())
+            <div class="status-banner-danger">
+                <p class="font-semibold">Corrige los siguientes errores:</p>
+                <ul class="mt-2 list-inside list-disc">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-        <div class="mt-4">
-            <x-input-label for="password" value="Password" />
+        <form method="POST" action="{{ route('register') }}" class="space-y-5">
+            @csrf
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                type="password"
-                name="password"
-                required autocomplete="new-password" />
+            <div>
+                <label for="name" class="field-label">Nombre completo</label>
+                <x-text-input id="name" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+                <x-input-error :messages="$errors->get('name')" class="mt-2" />
+            </div>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+            <div>
+                <label for="email" class="field-label">Correo electronico</label>
+                <x-text-input id="email" type="email" name="email" :value="old('email')" required autocomplete="username" />
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            </div>
 
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" value="Confirmar password" />
+            <div>
+                <label for="password" class="field-label">Contrasena</label>
+                <x-text-input id="password" type="password" name="password" required autocomplete="new-password" />
+                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            </div>
 
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                type="password"
-                name="password_confirmation" required autocomplete="new-password" />
+            <div>
+                <label for="password_confirmation" class="field-label">Confirmar contrasena</label>
+                <x-text-input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" />
+                <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+            </div>
 
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                Ya tienes cuenta?
-            </a>
-
-            <x-primary-button class="ms-4">
-                Registrarme
-            </x-primary-button>
-        </div>
-    </form>
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <a href="{{ route('login') }}" class="theme-button-secondary">Volver a iniciar sesion</a>
+                <button type="submit" class="theme-button-primary">
+                    <i class="bi bi-person-check"></i>
+                    Registrarme
+                </button>
+            </div>
+        </form>
+    </div>
 </x-guest-layout>

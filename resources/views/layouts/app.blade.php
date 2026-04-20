@@ -5,100 +5,102 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Sistema de Eventos') }}</title>
+        <title>{{ config('app.name', 'Sistema de Eventos y Parqueadero') }}</title>
 
-        <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-        <!-- Styles -->
+        <link href="https://fonts.bunny.net/css?family=outfit:400,500,600,700,800|space-grotesk:400,500,700&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="antialiased bg-gray-50">
-        <div class="flex h-screen bg-gray-100">
-            <!-- Sidebar -->
-            <div class="hidden md:flex md:w-64 md:flex-col">
-                <div class="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
-                    <div class="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-blue-600 to-blue-800">
-                        <h1 class="text-xl font-bold text-white">Gestión de Eventos</h1>
-                    </div>
-                    <nav class="flex-1 space-y-1 px-2 py-4">
-                        <a href="{{ route('dashboard') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                            <svg class="mr-3 h-6 w-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 5h4"></path>
-                            </svg>
-                            Dashboard
-                        </a>
-                        <a href="{{ route('eventos.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('eventos.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                            <svg class="mr-3 h-6 w-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            Eventos
-                        </a>
-                        @if(auth()->user() && auth()->user()->id_tipo_rol === 1)
-                        <a href="{{ route('admin.eventos.create') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50">
-                            <svg class="mr-3 h-6 w-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            Crear Evento
-                        </a>
-                        @endif
-                    </nav>
-                </div>
-            </div>
-
-            <!-- Main content -->
-            <div class="flex flex-col flex-1 overflow-hidden">
-                <!-- Top navbar -->
-                <div class="bg-white shadow-sm">
-                    <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-                        <div class="flex items-center">
-                            <button type="button" class="inline-flex items-center justify-center rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden">
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                                </svg>
-                            </button>
+    <body>
+        <div class="theme-shell theme-grid">
+            <div class="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+                <header class="glass-panel neon-outline mb-8 px-5 py-5 sm:px-6">
+                    <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                        <div class="flex items-start gap-4">
+                            <span class="inline-flex h-16 w-16 items-center justify-center rounded-[1.6rem] bg-cyan-400/12 text-3xl text-cyan-200">
+                                <i class="bi bi-car-front-fill"></i>
+                            </span>
+                            <div>
+                                <p class="section-eyebrow">Smart parking district</p>
+                                <h1 class="mt-4 text-2xl font-black text-white sm:text-3xl">Centro de control para eventos y parqueadero</h1>
+                                <p class="mt-3 max-w-2xl text-sm text-soft">Visualiza flujo de eventos, ocupacion y operacion desde una interfaz tipo hub urbano.</p>
+                            </div>
                         </div>
-                        <div class="flex items-center space-x-4">
-                            <div class="flex items-center space-x-2">
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-700">{{ auth()->user()->name }}</p>
-                                    <p class="text-xs text-gray-500">
-                                        @if(auth()->user()->id_tipo_rol === 1)
-                                            Administrador
-                                        @else
-                                            Usuario
-                                        @endif
-                                    </p>
+
+                        @auth
+                            <div class="flex flex-col gap-3 lg:items-end">
+                                <div class="glass-panel-strong flex items-center gap-3 px-4 py-3">
+                                    <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/10 text-xl text-amber-200">
+                                        <i class="bi bi-person-badge-fill"></i>
+                                    </span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-white">{{ auth()->user()->name }}</p>
+                                        <p class="text-xs uppercase tracking-[0.3em] text-muted">{{ auth()->user()->id_tipo_rol === 1 ? 'Administrador' : 'Usuario' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="{{ route('dashboard') }}" class="topbar-link {{ request()->routeIs('dashboard') ? 'topbar-link-active' : '' }}">
+                                        <i class="bi bi-speedometer2"></i>
+                                        Dashboard
+                                    </a>
+                                    <a href="{{ route('eventos.index') }}" class="topbar-link {{ request()->routeIs('eventos.*') ? 'topbar-link-active' : '' }}">
+                                        <i class="bi bi-calendar2-event"></i>
+                                        Eventos
+                                    </a>
+                                    @if(auth()->user()->id_tipo_rol === 1)
+                                        <a href="{{ route('admin.dashboard') }}" class="topbar-link {{ request()->routeIs('admin.*') ? 'topbar-link-active' : '' }}">
+                                            <i class="bi bi-shield-lock"></i>
+                                            Admin
+                                        </a>
+                                    @else
+                                        <a href="{{ route('panel.dashboard') }}" class="topbar-link {{ request()->routeIs('panel.*') ? 'topbar-link-active' : '' }}">
+                                            <i class="bi bi-grid-1x2"></i>
+                                            Panel
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('profile.edit') }}" class="topbar-link {{ request()->routeIs('profile.*') ? 'topbar-link-active' : '' }}">
+                                        <i class="bi bi-sliders"></i>
+                                        Perfil
+                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="theme-button-danger">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                            Salir
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-3 py-2 rounded-md">
-                                    Cerrar sesión
-                                </button>
-                            </form>
-                        </div>
+                        @endauth
                     </div>
-                </div>
+                </header>
 
-                <!-- Page content -->
-                <main class="flex-1 overflow-y-auto">
+                <main class="flex-1">
                     @if($errors->any())
-                    <div class="mx-4 my-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <h3 class="text-sm font-medium text-red-800">Errores</h3>
-                        <ul class="mt-2 list-disc list-inside text-sm text-red-700">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                        <div class="status-banner-danger">
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-exclamation-triangle-fill text-2xl"></i>
+                                <div>
+                                    <p class="font-semibold">Tienes errores</p>
+                                    <ul class="mt-2 list-inside list-disc text-sm text-rose-100">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     @endif
 
                     @if(session('success'))
-                    <div class="mx-4 my-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
-                    </div>
+                        <div class="status-banner-success">
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-check-circle-fill text-2xl"></i>
+                                <p class="text-sm font-semibold">{{ session('success') }}</p>
+                            </div>
+                        </div>
                     @endif
 
                     {{ $slot }}

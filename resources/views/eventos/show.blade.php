@@ -1,142 +1,113 @@
 <x-app-layout>
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mb-6">
-            <a href="{{ route('eventos.index') }}" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
-                ← Volver a eventos
-            </a>
-        </div>
+    <div class="space-y-8">
+        <a href="{{ route('eventos.index') }}" class="topbar-link w-fit">
+            <i class="bi bi-arrow-left"></i>
+            Volver a eventos
+        </a>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Main Content -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h1 class="text-3xl font-bold text-gray-900">{{ $evento->nombre }}</h1>
-                                <p class="mt-1 text-gray-600">{{ $evento->descripcion }}</p>
-                            </div>
-                            @if(auth()->user() && auth()->user()->id_tipo_rol === 1)
-                            <div class="flex space-x-2 ml-4">
-                                <a href="{{ route('admin.eventos.edit', $evento) }}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                    Editar
-                                </a>
-                                <form action="{{ route('admin.eventos.destroy', $evento) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-gray-50">
-                                        Eliminar
-                                    </button>
-                                </form>
-                            </div>
-                            @endif
-                        </div>
+        <section class="glass-panel neon-outline overflow-hidden p-8">
+            <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+                <div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="chip chip-accent">{{ $evento->estado->nombre }}</span>
+                        <span class="chip {{ $evento->tiene_parqueadero ? 'chip-success' : '' }}">
+                            <i class="bi bi-p-circle"></i>
+                            {{ $evento->tiene_parqueadero ? 'Con parqueadero' : 'Sin parqueadero' }}
+                        </span>
                     </div>
 
-                    <div class="px-6 py-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Fecha</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $evento->fecha->format('d de F de Y') }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Hora</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $evento->hora->format('H:i') }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Lugar</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $evento->lugar }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Capacidad Máxima</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $evento->capacidad_maxima }} personas</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Estado</p>
-                                <p class="mt-1">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                        {{ $evento->estado->nombre }}
-                                    </span>
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Parqueadero</p>
-                                <p class="mt-1 text-lg text-gray-900">
-                                    @if($evento->tiene_parqueadero)
-                                        <span class="inline-flex items-center px-2 py-1 rounded text-sm font-medium bg-green-100 text-green-800">
-                                            Sí
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800">
-                                            No
-                                        </span>
-                                    @endif
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Creado por</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $evento->usuario->name }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Creado el</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $evento->created_at->format('d/m/Y H:i') }}</p>
-                            </div>
+                    <h1 class="mt-6 text-4xl font-black text-white sm:text-5xl">{{ $evento->nombre }}</h1>
+                    <p class="mt-5 max-w-3xl text-base leading-8 text-soft">{{ $evento->descripcion }}</p>
+
+                    <div class="mt-8 grid gap-4 sm:grid-cols-2">
+                        <div class="metric-card">
+                            <p class="chip">Fecha</p>
+                            <p class="mt-4 text-2xl font-bold text-white">{{ $evento->fecha->format('d/m/Y') }}</p>
+                            <p class="metric-label">Hora de inicio: {{ $evento->hora->format('H:i') }}</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="chip">Aforo</p>
+                            <p class="mt-4 text-2xl font-bold text-white">{{ $evento->capacidad_maxima }}</p>
+                            <p class="metric-label">Capacidad maxima de asistentes.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Parqueadero Section -->
-                @if($evento->tiene_parqueadero && $evento->parqueadero)
-                <div class="mt-6 bg-white rounded-lg shadow overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                        <h2 class="text-lg font-semibold text-gray-900">Información del Parqueadero</h2>
-                    </div>
-                    <div class="px-6 py-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Capacidad Total</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $evento->parqueadero->capacidad_total }} espacios</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Cupos Disponibles</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $evento->parqueadero->cupos_disponibles }} espacios</p>
-                            </div>
-                            @if($evento->parqueadero->descripcion)
-                            <div class="md:col-span-2">
-                                <p class="text-sm font-medium text-gray-600">Descripción</p>
-                                <p class="mt-1 text-gray-900">{{ $evento->parqueadero->descripcion }}</p>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                @endif
-            </div>
-
-            <!-- Sidebar -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Detalles</h3>
-                    <dl class="space-y-4">
+                <aside class="glass-panel-strong p-6">
+                    <h2 class="text-2xl font-bold text-white">Ficha operativa</h2>
+                    <dl class="mt-6 space-y-5 text-sm text-soft">
                         <div>
-                            <dt class="text-sm font-medium text-gray-600">Identificador</dt>
-                            <dd class="text-sm text-gray-900 mt-1">#{{ $evento->id }}</dd>
+                            <dt class="text-xs uppercase tracking-[0.24em] text-muted">Lugar</dt>
+                            <dd class="mt-1 text-base text-white">{{ $evento->lugar }}</dd>
                         </div>
                         <div>
-                            <dt class="text-sm font-medium text-gray-600">Estado</dt>
-                            <dd class="text-sm text-gray-900 mt-1">{{ $evento->estado->nombre }}</dd>
+                            <dt class="text-xs uppercase tracking-[0.24em] text-muted">Organizador</dt>
+                            <dd class="mt-1 text-base text-white">{{ $evento->usuario->name }}</dd>
                         </div>
                         <div>
-                            <dt class="text-sm font-medium text-gray-600">Organizador</dt>
-                            <dd class="text-sm text-gray-900 mt-1">{{ $evento->usuario->name }}</dd>
+                            <dt class="text-xs uppercase tracking-[0.24em] text-muted">Creado</dt>
+                            <dd class="mt-1 text-base text-white">{{ $evento->created_at->format('d/m/Y H:i') }}</dd>
                         </div>
-                        <div class="pt-4 border-t border-gray-200">
-                            <dt class="text-sm font-medium text-gray-600">Última actualización</dt>
-                            <dd class="text-sm text-gray-900 mt-1">{{ $evento->updated_at->diffForHumans() }}</dd>
+                        <div>
+                            <dt class="text-xs uppercase tracking-[0.24em] text-muted">Ultima actualizacion</dt>
+                            <dd class="mt-1 text-base text-white">{{ $evento->updated_at->diffForHumans() }}</dd>
                         </div>
                     </dl>
-                </div>
+
+                    @if(auth()->user() && auth()->user()->id_tipo_rol === 1)
+                        <div class="mt-8 flex flex-wrap gap-2">
+                            <a href="{{ route('admin.eventos.edit', $evento) }}" class="theme-button-secondary">
+                                <i class="bi bi-pencil-square"></i>
+                                Editar
+                            </a>
+                            <form action="{{ route('admin.eventos.destroy', $evento) }}" method="POST" onsubmit="return confirm('Seguro que deseas eliminar este evento?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="theme-button-danger">
+                                    <i class="bi bi-trash3"></i>
+                                    Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    @endif
+                </aside>
             </div>
-        </div>
+        </section>
+
+        @if($evento->tiene_parqueadero && $evento->parqueadero)
+            <section class="glass-panel neon-outline p-8">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="section-eyebrow">Parking zone</p>
+                        <h2 class="mt-4 text-3xl font-bold text-white">Informacion del parqueadero asociado</h2>
+                    </div>
+                    <span class="chip chip-success">Activo en este evento</span>
+                </div>
+
+                <div class="mt-8 grid gap-5 md:grid-cols-3">
+                    <article class="metric-card">
+                        <p class="chip">Capacidad total</p>
+                        <p class="metric-value">{{ $evento->parqueadero->capacidad_total }}</p>
+                        <p class="metric-label">Espacios configurados.</p>
+                    </article>
+                    <article class="metric-card">
+                        <p class="chip chip-success">Disponibles</p>
+                        <p class="metric-value">{{ $evento->parqueadero->cupos_disponibles }}</p>
+                        <p class="metric-label">Cupos libres para ingreso.</p>
+                    </article>
+                    <article class="metric-card">
+                        <p class="chip chip-warning">Cobertura</p>
+                        <p class="metric-value">{{ $evento->capacidad_maxima > 0 ? round(($evento->parqueadero->capacidad_total / $evento->capacidad_maxima) * 100) : 0 }}%</p>
+                        <p class="metric-label">Relacion entre aforo y parqueadero.</p>
+                    </article>
+                </div>
+
+                @if($evento->parqueadero->descripcion)
+                    <div class="mt-8 rounded-[1.6rem] border border-cyan-400/15 bg-cyan-400/5 p-5 text-soft">
+                        {{ $evento->parqueadero->descripcion }}
+                    </div>
+                @endif
+            </section>
+        @endif
     </div>
 </x-app-layout>
