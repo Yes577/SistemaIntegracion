@@ -37,7 +37,10 @@
                         <div class="mt-6 space-y-3 text-sm text-soft">
                             <p><i class="bi bi-calendar3 me-2 text-cyan-200"></i>{{ $evento->fecha->format('d/m/Y') }} a las {{ $evento->hora->format('H:i') }}</p>
                             <p><i class="bi bi-geo-alt me-2 text-amber-200"></i>{{ $evento->lugar }}</p>
-                            <p><i class="bi bi-people me-2 text-emerald-200"></i>Capacidad: {{ $evento->capacidad_maxima }} personas</p>
+                            <p><i class="bi bi-people me-2 text-emerald-200"></i>Capacidad: {{ $evento->capacidad_actual }} / {{ $evento->capacidad_maxima }} cupos disponibles</p>
+                            @if($evento->tiene_parqueadero && $evento->parqueadero && $evento->estado->nombre === 'publicado')
+                                <p><i class="bi bi-p-circle me-2 text-violet-300"></i>Parqueadero: {{ $evento->parqueadero->cupos_disponibles }} / {{ $evento->parqueadero->capacidad_total }} cupos disponibles</p>
+                            @endif
                         </div>
 
                         <div class="mt-6 flex flex-wrap gap-2">
@@ -58,6 +61,57 @@
                                         Eliminar
                                     </button>
                                 </form>
+                            @elseif(auth()->user() && auth()->user()->id_tipo_rol === 2)
+                                @php
+                                    $inscripcion = $evento->inscripciones->firstWhere('id_user', auth()->id());
+                                    $yaInscrito  = !is_null($inscripcion);
+                                    $esPublicado = $evento->estado->nombre === 'publicado';
+                                @endphp
+                                @if($yaInscrito)
+                                    {{-- Badge según si tiene parqueadero o no --}}
+                                    @if($inscripcion->id_parqueadero)
+                                        <span class="chip chip-success">
+                                            <i class="bi bi-check-circle"></i> Inscrito + parqueadero
+                                        </span>
+                                    @else
+                                        <span class="chip chip-success">
+                                            <i class="bi bi-check-circle"></i> Inscrito al evento
+                                        </span>
+                                    @endif
+                                    <form action="{{ route('panel.inscripciones.destroy', $evento) }}" method="POST"
+                                          onsubmit="return confirm('¿Seguro que deseas cancelar tu inscripción?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="theme-button-danger">
+                                            <i class="bi bi-person-dash"></i>
+                                            Cancelar inscripción
+                                        </button>
+                                    </form>
+                                @elseif($esPublicado && $evento->capacidad_actual > 0)
+                                    {{-- Publicado con cupos: botones de inscripción --}}
+                                    <form action="{{ route('panel.inscripciones.store', $evento) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="theme-button-primary">
+                                            <i class="bi bi-person-plus"></i>
+                                            Inscribirse
+                                        </button>
+                                    </form>
+                                    @if($evento->tiene_parqueadero && $evento->parqueadero && $evento->parqueadero->cupos_disponibles > 0)
+                                        <form action="{{ route('panel.inscripciones.store', $evento) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="con_parqueadero" value="1">
+                                            <button type="submit" class="theme-button-secondary">
+                                                <i class="bi bi-p-circle"></i>
+                                                Inscribirse + Parqueadero
+                                            </button>
+                                        </form>
+                                    @endif
+                                @elseif($esPublicado && $evento->capacidad_actual <= 0)
+                                    <span class="chip"><i class="bi bi-x-circle"></i> Sin cupos</span>
+                                @else
+                                    {{-- cerrado o cancelado --}}
+                                    <span class="chip"><i class="bi bi-lock"></i> {{ ucfirst($evento->estado->nombre) }}</span>
+                                @endif
                             @endif
                         </div>
                     </article>

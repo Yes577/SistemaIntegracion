@@ -22,6 +22,7 @@ class Evento extends Model
         'lugar',
         'tiene_parqueadero',
         'capacidad_maxima',
+        'capacidad_actual',
         'id_estado',
         'id_usuario',
     ];
@@ -47,5 +48,10 @@ class Evento extends Model
     public function parqueadero(): HasOne
     {
         return $this->hasOne(Parqueadero::class, 'id_evento');
+    }
+
+    public function inscripciones()
+    {
+        return $this->hasMany(Inscripcion::class, 'id_evento');
     }
 }

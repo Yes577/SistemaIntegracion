@@ -27,8 +27,8 @@
                         </div>
                         <div class="metric-card">
                             <p class="chip">Aforo</p>
-                            <p class="mt-4 text-2xl font-bold text-white">{{ $evento->capacidad_maxima }}</p>
-                            <p class="metric-label">Capacidad maxima de asistentes.</p>
+                            <p class="mt-4 text-2xl font-bold text-white">{{ $evento->capacidad_actual }} / {{ $evento->capacidad_maxima }}</p>
+                            <p class="metric-label">Cupos disponibles / Capacidad maxima.</p>
                         </div>
                     </div>
                 </div>
@@ -68,6 +68,56 @@
                                     Eliminar
                                 </button>
                             </form>
+                        </div>
+                    @elseif(auth()->user() && auth()->user()->id_tipo_rol === 2)
+                        @php
+                            $inscripcion = $evento->inscripciones->firstWhere('id_user', auth()->id());
+                            $yaInscrito  = !is_null($inscripcion);
+                            $esPublicado = $evento->estado->nombre === 'publicado';
+                        @endphp
+                        <div class="mt-8 flex flex-wrap gap-2">
+                            @if($yaInscrito)
+                                @if($inscripcion->id_parqueadero)
+                                    <span class="chip chip-success">
+                                        <i class="bi bi-check-circle"></i> Inscrito al evento + parqueadero
+                                    </span>
+                                @else
+                                    <span class="chip chip-success">
+                                        <i class="bi bi-check-circle"></i> Inscrito al evento
+                                    </span>
+                                @endif
+                                <form action="{{ route('panel.inscripciones.destroy', $evento) }}" method="POST"
+                                      onsubmit="return confirm('¿Seguro que deseas cancelar tu inscripción?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="theme-button-danger">
+                                        <i class="bi bi-person-dash"></i>
+                                        Cancelar inscripción
+                                    </button>
+                                </form>
+                            @elseif($esPublicado && $evento->capacidad_actual > 0)
+                                <form action="{{ route('panel.inscripciones.store', $evento) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="theme-button-primary">
+                                        <i class="bi bi-person-plus"></i>
+                                        Inscribirse al evento
+                                    </button>
+                                </form>
+                                @if($evento->tiene_parqueadero && $evento->parqueadero && $evento->parqueadero->cupos_disponibles > 0)
+                                    <form action="{{ route('panel.inscripciones.store', $evento) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="con_parqueadero" value="1">
+                                        <button type="submit" class="theme-button-secondary">
+                                            <i class="bi bi-p-circle"></i>
+                                            Inscribirse + Parqueadero
+                                        </button>
+                                    </form>
+                                @endif
+                            @elseif($esPublicado && $evento->capacidad_actual <= 0)
+                                <span class="chip"><i class="bi bi-x-circle"></i> Sin cupos disponibles</span>
+                            @else
+                                <span class="chip"><i class="bi bi-lock"></i> {{ ucfirst($evento->estado->nombre) }}</span>
+                            @endif
                         </div>
                     @endif
                 </aside>

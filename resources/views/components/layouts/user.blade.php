@@ -39,6 +39,9 @@
                     </div>
                 </header>
 
+                @if (session('success'))
+                    <div class="status-banner-success">{{ session('success') }}</div>
+                @endif
                 @if (session('error'))
                     <div class="status-banner-danger">{{ session('error') }}</div>
                 @endif

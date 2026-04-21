@@ -4,6 +4,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventoController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminInscripcionController;
+use App\Http\Controllers\InscripcionController;
 use App\Http\Controllers\PanelDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,10 +37,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/eventos/{evento}', [EventoController::class, 'update'])->name('eventos.update');
     Route::delete('/eventos/{evento}', [EventoController::class, 'destroy'])->name('eventos.destroy');
     Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
+
+    // Inscripciones
+    Route::get('/inscritos', [AdminInscripcionController::class, 'index'])->name('inscripciones.index');
 });
 
 Route::middleware(['auth', 'user.role'])->prefix('panel')->name('panel.')->group(function () {
     Route::get('/dashboard', [PanelDashboardController::class, 'index'])->name('dashboard');
+
+    // Inscripciones
+    Route::post('/eventos/{evento}/inscribirse', [InscripcionController::class, 'store'])->name('inscripciones.store');
+    Route::delete('/eventos/{evento}/cancelar-inscripcion', [InscripcionController::class, 'destroy'])->name('inscripciones.destroy');
 });
 
 require __DIR__.'/auth.php';
