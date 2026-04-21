@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('tiene_parqueadero')->default(false);
 
             $table->integer('capacidad_maxima');
+            $table->integer('capacidad_actual');
 
             $table->foreignId('id_estado')
                   ->constrained('estados_evento')

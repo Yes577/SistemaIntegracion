@@ -35,4 +35,9 @@ class Parqueadero extends Model
     {
         return $this->belongsTo(Evento::class, 'id_evento');
     }
+
+    public function inscripciones()
+    {
+        return $this->hasMany(Inscripcion::class, 'id_parqueadero');
+    }
 }

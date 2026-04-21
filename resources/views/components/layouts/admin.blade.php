@@ -33,6 +33,10 @@
                             <i class="bi bi-calendar2-week"></i>
                             Eventos
                         </a>
+                        <a href="{{ route('admin.inscripciones.index') }}" class="topbar-link w-full justify-start {{ request()->routeIs('admin.inscripciones.index') ? 'topbar-link-active' : '' }}">
+                            <i class="bi bi-people-fill"></i>
+                            Inscritos
+                        </a>
                         <a href="{{ route('admin.eventos.create') }}" class="topbar-link w-full justify-start {{ request()->routeIs('admin.eventos.create') ? 'topbar-link-active' : '' }}">
                             <i class="bi bi-plus-circle"></i>
                             Nuevo evento

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Evento;
 use App\Models\EstadoEvento;
 use App\Models\Parqueadero;
+use App\Models\TipoRol;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -15,9 +16,29 @@ class EventoController extends Controller
      */
     public function index(): View
     {
-        $eventos = Evento::with(['estado', 'usuario', 'parqueadero'])
-            ->orderBy('fecha', 'desc')
-            ->paginate(10);
+        $query = Evento::with(['estado', 'usuario', 'parqueadero', 'inscripciones'])
+            ->orderBy('fecha', 'desc');
+
+        $user = auth()->user();
+
+        if ($user) {
+            if ($user->id_tipo_rol === TipoRol::ADMIN_ID) {
+                // Administradores: solo ven sus propios eventos (independientemente del estado)
+                $query->where('id_usuario', $user->id);
+            } else {
+                // Usuarios normales: ven todos los eventos de todos los administradores
+                // pero filtrados por estado (publicado, cerrado o cancelado)
+                $query->whereHas('estado', function ($q) {
+                    $q->whereIn('nombre', [
+                        EstadoEvento::PUBLICADO,
+                        EstadoEvento::CERRADO,
+                        EstadoEvento::CANCELADO,
+                    ]);
+                });
+            }
+        }
+
+        $eventos = $query->paginate(10);
 
         $viewPath = request()->routeIs('admin.*') ? 'admin.eventos.index' : 'eventos.index';
         return view($viewPath, compact('eventos'));
@@ -53,14 +74,15 @@ class EventoController extends Controller
         ]);
 
         $evento = Evento::create([
-            'nombre' => $validated['nombre'],
-            'descripcion' => $validated['descripcion'],
-            'fecha' => $validated['fecha'],
-            'hora' => $validated['hora'],
-            'lugar' => $validated['lugar'],
+            'nombre'           => $validated['nombre'],
+            'descripcion'      => $validated['descripcion'],
+            'fecha'            => $validated['fecha'],
+            'hora'             => $validated['hora'],
+            'lugar'            => $validated['lugar'],
             'capacidad_maxima' => $validated['capacidad_maxima'],
-            'id_estado' => $validated['id_estado'],
-            'id_usuario' => auth()->id(),
+            'capacidad_actual' => $validated['capacidad_maxima'], // Igual a maxima al crear
+            'id_estado'        => $validated['id_estado'],
+            'id_usuario'       => auth()->id(),
             'tiene_parqueadero' => $validated['tiene_parqueadero'] ?? false,
         ]);
 
@@ -82,6 +104,14 @@ class EventoController extends Controller
      */
     public function show(Evento $evento): View
     {
+        $user = auth()->user();
+        
+        // Si es admin, verificar que sea el dueño
+        if ($user && $user->id_tipo_rol === TipoRol::ADMIN_ID && $evento->id_usuario !== $user->id) {
+            abort(403, 'No tienes permiso para ver este evento.');
+        }
+
+        $evento->load(['estado', 'usuario', 'parqueadero', 'inscripciones']);
         return view('eventos.show', compact('evento'));
     }
 
@@ -90,6 +120,13 @@ class EventoController extends Controller
      */
     public function edit(Evento $evento): View
     {
+        $user = auth()->user();
+        
+        // Solo el dueño administrador puede editar
+        if ($evento->id_usuario !== $user->id) {
+            abort(403, 'No puedes editar un evento que no creaste.');
+        }
+
         $estados = EstadoEvento::all();
         $viewPath = request()->routeIs('admin.*') ? 'admin.eventos.edit' : 'eventos.edit';
         return view($viewPath, compact('evento', 'estados'));
@@ -100,6 +137,13 @@ class EventoController extends Controller
      */
     public function update(Request $request, Evento $evento)
     {
+        $user = auth()->user();
+        
+        // Solo el dueño administrador puede actualizar
+        if ($evento->id_usuario !== $user->id) {
+            abort(403, 'No puedes actualizar un evento que no creaste.');
+        }
+
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
@@ -115,13 +159,14 @@ class EventoController extends Controller
         ]);
 
         $evento->update([
-            'nombre' => $validated['nombre'],
-            'descripcion' => $validated['descripcion'],
-            'fecha' => $validated['fecha'],
-            'hora' => $validated['hora'],
-            'lugar' => $validated['lugar'],
-            'capacidad_maxima' => $validated['capacidad_maxima'],
-            'id_estado' => $validated['id_estado'],
+            'nombre'            => $validated['nombre'],
+            'descripcion'       => $validated['descripcion'],
+            'fecha'             => $validated['fecha'],
+            'hora'              => $validated['hora'],
+            'lugar'             => $validated['lugar'],
+            'capacidad_maxima'  => $validated['capacidad_maxima'],
+            'capacidad_actual'  => $validated['capacidad_maxima'], // Se resetea al editar
+            'id_estado'         => $validated['id_estado'],
             'tiene_parqueadero' => $validated['tiene_parqueadero'] ?? false,
         ]);
 
@@ -154,6 +199,13 @@ class EventoController extends Controller
      */
     public function destroy(Evento $evento)
     {
+        $user = auth()->user();
+        
+        // Solo el dueño administrador puede eliminar
+        if ($evento->id_usuario !== $user->id) {
+            abort(403, 'No puedes eliminar un evento que no creaste.');
+        }
+
         $evento->delete();
         return redirect()->route('admin.eventos.index')->with('success', 'Evento eliminado exitosamente.');
     }
