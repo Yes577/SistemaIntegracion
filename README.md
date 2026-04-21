@@ -1,12 +1,12 @@
 # SistemaIntegracion
 
-Sistema de Gestión de Eventos desarrollado con Laravel 12, Tailwind CSS y SQLite.
+Sistema de Gestión de Eventos desarrollado con Laravel 12, Tailwind CSS y PostgreSQL.
 
 ## Stack
 
 - **Backend**: Laravel 12
 - **Frontend**: Blade Templates + Tailwind CSS
-- **Base de Datos**: SQLite
+- **Base de Datos**: PostgreSQL
 - **Autenticación**: Laravel Breeze
 - **Build Tool**: Vite
 
@@ -71,32 +71,41 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-### 4. Crear base de datos
-```bash
-touch database/database.sqlite
-```
+Edita el archivo `.env` con tus credenciales de PostgreSQL:
+- `DB_CONNECTION=pgsql`
+- `DB_HOST=tu-host-postgres`
+- `DB_PORT=5432`
+- `DB_DATABASE=tu-base-datos`
+- `DB_USERNAME=tu-usuario`
+- `DB_PASSWORD=tu-contraseña`
 
-### 5. Ejecutar migraciones y seeders
+### 4. Ejecutar migraciones y seeders
 ```bash
 php artisan migrate:fresh --seed
 ```
 
-### 6. Instalar dependencias de npm
+### 5. Instalar dependencias de npm
 ```bash
 npm install
 ```
 
-### 7. Compilar assets
+### 6. Compilar assets
 ```bash
 npm run build
 ```
 
-### 8. Iniciar servidor de desarrollo
+### 7. Iniciar servidor de desarrollo
 ```bash
 php artisan serve
 ```
 
 La aplicación estará disponible en: **http://localhost:8000**
+
+## Notas Importantes
+
+- Asegúrate de tener PostgreSQL instalado y configurado en tu sistema.
+- Si usas Docker o un contenedor, ajusta las variables de entorno en consecuencia.
+- Para desarrollo, puedes usar una base de datos local de PostgreSQL.
 
 ## Rutas Disponibles
 
