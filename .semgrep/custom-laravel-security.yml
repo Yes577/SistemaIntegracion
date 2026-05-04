@@ -64,5 +64,5 @@ rules:
     languages: [generic]
     paths:
       include:
-        - resources/views/**/*.blade.php
+        - "**/resources/views/**/*.blade.php"
     pattern: "{!! ... !!}"

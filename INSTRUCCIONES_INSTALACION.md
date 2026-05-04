@@ -1,106 +1,110 @@
-# Sistema de Gestión de Eventos - Instrucciones de Instalación
+# Sistema de Gestion de Eventos - Instrucciones de Instalacion
 
-## Estado Actual
-✅ Laravel 12 instalado
-✅ Modelos creados (Evento, EstadoEvento, Parqueadero)
-✅ Controladores implementados
-✅ Policies configuradas
-✅ Vistas Blade creadas
-✅ Rutas configuradas
-✅ Dependencias instaladas con Composer
+## Estado actual
 
-## Pasos para Completar la Instalación
+- Laravel 12 instalado
+- Modelos creados
+- Controladores implementados
+- Policies configuradas
+- Vistas Blade creadas
+- Rutas configuradas
 
-### 1. Crear archivo .env
-Copia el archivo `.env.example` a `.env`:
+## Pasos de instalacion
+
+### 1. Crear archivo `.env`
+
 ```bash
 cp .env.example .env
 ```
 
 ### 2. Generar APP_KEY
+
 ```bash
 php artisan key:generate
 ```
 
-### 3. Crear base de datos (SQLite)
-```bash
-touch database/database.sqlite
+### 3. Configurar base de datos
+
+Define en `.env` las variables de PostgreSQL o la base de datos que vayas a usar.
+
+### 4. Definir bootstrap del administrador
+
+Antes de ejecutar seeders, agrega:
+
+```env
+ADMIN_BOOTSTRAP_NAME="Administrador"
+ADMIN_BOOTSTRAP_EMAIL=admin@example.com
+ADMIN_BOOTSTRAP_PASSWORD=DefineUnaClaveSeguraAqui
 ```
 
-### 4. Ejecutar migraciones
+Si `ADMIN_BOOTSTRAP_EMAIL` o `ADMIN_BOOTSTRAP_PASSWORD` no estan definidas, el seeder no crea el administrador.
+
+### 5. Ejecutar migraciones
+
 ```bash
 php artisan migrate
 ```
 
-### 5. Ejecutar seeders
+### 6. Ejecutar seeders
+
 ```bash
 php artisan db:seed
 ```
 
-### 6. Compilar assets (si es necesario)
+### 7. Compilar assets
+
 ```bash
 npm run dev
-# o en producción: npm run build
 ```
 
-## Estructura Creada
+Para produccion:
+
+```bash
+npm run build
+```
+
+## Estructura creada
 
 ### Modelos
-- `App\Models\Evento` - Eventos del sistema
-- `App\Models\EstadoEvento` - Estados de eventos (borrador, publicado, cerrado, cancelado)
-- `App\Models\Parqueadero` - Parqueaderos asociados a eventos
+
+- `App\Models\Evento`
+- `App\Models\EstadoEvento`
+- `App\Models\Parqueadero`
 
 ### Controladores
-- `EventoController` - CRUD completo de eventos (con control de acceso)
-- `DashboardController` - Dashboard principal
+
+- `EventoController`
+- `DashboardController`
 
 ### Policies
-- `EventoPolicy` - Control de acceso basado en roles
+
+- `EventoPolicy`
 
 ### Vistas
-- `layouts/app.blade.php` - Layout principal con sidebar y navbar
-- `dashboard.blade.php` - Panel principal
-- `eventos/index.blade.php` - Listado de eventos
-- `eventos/create.blade.php` - Crear evento (solo admin)
-- `eventos/edit.blade.php` - Editar evento (solo admin)
-- `eventos/show.blade.php` - Ver detalle de evento
+
+- `layouts/app.blade.php`
+- `dashboard.blade.php`
+- `eventos/index.blade.php`
+- `eventos/create.blade.php`
+- `eventos/edit.blade.php`
+- `eventos/show.blade.php`
 
 ### Seeders
-- `EstadoEventoSeeder` - Crea los estados iniciales
-- `DatabaseSeeder` - Ejecuta todos los seeders
 
-## Rutas Disponibles
+- `EstadoEventoSeeder`
+- `DatabaseSeeder`
 
-### Públicas (todos los usuarios)
-- `GET /dashboard` - Dashboard
-- `GET /eventos` - Listado de eventos
-- `GET /eventos/{evento}` - Detalle de evento
+## Control de roles
 
-### Solo Admin
-- `GET /eventos/crear` - Crear evento
-- `POST /eventos` - Guardar evento
-- `GET /eventos/{evento}/editar` - Editar evento
-- `PATCH /eventos/{evento}` - Actualizar evento
-- `DELETE /eventos/{evento}` - Eliminar evento
-
-## Control de Roles
-
-El sistema verifica `id_tipo_rol` del usuario:
-- **Admin**: `id_tipo_rol = 1`
-  - Puede crear eventos
-  - Puede editar eventos
-  - Puede eliminar eventos
-  - Puede registrar parqueaderos
-
-- **Usuario Normal**: `id_tipo_rol = 2`
-  - Solo puede ver eventos
-  - No puede crear/editar/eliminar
+- Admin: `id_tipo_rol = 1`
+- Usuario normal: `id_tipo_rol = 2`
 
 ## Datos iniciales
 
-El seeder crea automáticamente:
-1. Usuario admin: `admin@admin.com` / `admin123`
-2. Estados de evento: borrador, publicado, cerrado, cancelado
+Los seeders crean:
+
+1. Estados de evento: borrador, publicado, cerrado y cancelado
+2. Usuario administrador solo si las variables `ADMIN_BOOTSTRAP_EMAIL` y `ADMIN_BOOTSTRAP_PASSWORD` existen
 
 ## Iniciar servidor de desarrollo
 
@@ -108,50 +112,10 @@ El seeder crea automáticamente:
 php artisan serve
 ```
 
-Luego accede a http://localhost:8000
+Luego accede a `http://localhost:8000`.
 
-## Características Implementadas
+## Notas importantes
 
-### Dashboard
-- Bienvenida personalizada
-- Recount de eventos totales
-- Lista de próximos eventos
-- Información de usuario logueado (nombre y rol)
-
-### Gestión de Eventos
-- Crear eventos (solo admin)
-- Editar eventos (solo admin)
-- Ver detalle de eventos
-- Listar eventos con paginación
-- Estados dinámicos (borrador, publicado, cerrado, cancelado)
-
-### Sistema de Parqueaderos
-- Crear parqueadero al crear evento
-- Toggle dinámico: muestra/oculta campos si "tiene parqueadero"
-- Editar información de parqueadero
-- Ver detalles de parqueadero
-
-### UI/UX
-- Sidebar con navegación
-- Navbar superior con info de usuario
-- Formulario dinámico con JavaScript para mostrar/ocultar parqueadero
-- Diseño responsive con Tailwind CSS
-- Mensajes de éxito y error
-- Paginación de eventos
-
-## Próximos Pasos (Opcional)
-
-1. Personalizar estilos en `resources/css/app.css`
-2. Agregar validaciones adicionales
-3. Implementar búsqueda y filtros
-4. Agregar más campos a eventos/parqueaderos
-5. Crear reportes
-6. Agregar notificaciones
-7. Implementar tests
-
-## Notas Importantes
-
-- El sistema usa Tailwind CSS para estilos (ya incluido en el proyecto)
-- La autenticación ya está configurada (breeze/auth)
-- El middleware 'admin' está configurado en `bootstrap/app.php`
-- Las policies están automáticamente incorporadas en los controladores
+- No subas credenciales reales ni cuentas por defecto al repositorio.
+- El middleware `admin` se configura en `bootstrap/app.php`.
+- La autenticacion usa Laravel Breeze.

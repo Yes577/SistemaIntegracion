@@ -1,263 +1,159 @@
 # SistemaIntegracion
 
-Sistema de Gestión de Eventos desarrollado con Laravel 12, Tailwind CSS y PostgreSQL.
+Sistema de gestion de eventos desarrollado con Laravel 12, Blade, Tailwind CSS y PostgreSQL.
 
 ## Stack
 
-- **Backend**: Laravel 12
-- **Frontend**: Blade Templates + Tailwind CSS
-- **Base de Datos**: PostgreSQL
-- **Autenticación**: Laravel Breeze
-- **Build Tool**: Vite
+- Backend: Laravel 12
+- Frontend: Blade Templates + Tailwind CSS
+- Base de datos: PostgreSQL
+- Autenticacion: Laravel Breeze
+- Build tool: Vite
 
-## Características
+## Funcionalidades
 
-### 🎯 Gestión de Eventos
-- ✅ Crear eventos (solo admin)
-- ✅ Editar eventos (solo admin)
-- ✅ Eliminar eventos (solo admin)
-- ✅ Ver listado de eventos
-- ✅ Ver detalle de eventos
-- ✅ Sistema de estados (borrador, publicado, cerrado, cancelado)
+### Gestion de eventos
 
-### 🅿️ Gestión de Parqueaderos
-- ✅ Crear parqueadero al crear evento
-- ✅ Formulario dinámico (muestra/oculta campos)
-- ✅ Información: capacidad, cupos disponibles, descripción
+- Crear eventos solo para administradores
+- Editar eventos solo para administradores
+- Eliminar eventos solo para administradores
+- Ver listado de eventos
+- Ver detalle de eventos
+- Manejar estados de evento: borrador, publicado, cerrado y cancelado
 
-### 👥 Control de Roles
-- **Admin**: Acceso completo a crear/editar/eliminar eventos
-- **Usuario**: Solo visualización de eventos
+### Gestion de parqueaderos
 
-### 🎨 UI/UX
-- Sidebar con navegación
-- Navbar superior con información de usuario
-- Diseño responsive con Tailwind CSS
-- Formularios dinámicos con JavaScript
-- Paginación de eventos
+- Crear parqueadero al crear un evento
+- Mostrar y ocultar campos dinamicos en formularios
+- Gestionar capacidad, cupos disponibles y descripcion
 
-## Credenciales de Acceso
+### Control de roles
 
-### Usuario Admin
+- Admin: acceso completo a crear, editar y eliminar eventos
+- Usuario: acceso de solo lectura
 
-| Campo | Valor |
-|-------|-------|
-| **Email** | `admin@admin.com` |
-| **Contraseña** | `admin123` |
-| **Rol** | Administrador |
+## Bootstrap de administrador
 
-**Permisos:**
-- Crear eventos
-- Editar eventos
-- Eliminar eventos
-- Crear parqueaderos
+El proyecto no versiona credenciales por defecto. Antes de ejecutar los seeders, define estas variables en tu archivo `.env`:
 
-## Instalación y Configuración
+```env
+ADMIN_BOOTSTRAP_NAME="Administrador"
+ADMIN_BOOTSTRAP_EMAIL=admin@example.com
+ADMIN_BOOTSTRAP_PASSWORD=DefineUnaClaveSeguraAqui
+```
+
+Si `ADMIN_BOOTSTRAP_EMAIL` o `ADMIN_BOOTSTRAP_PASSWORD` no estan definidas, el seeder omite la creacion del administrador.
+
+## Instalacion y configuracion
 
 ### 1. Clonar repositorio
+
 ```bash
 git clone <repositorio>
 cd SistemaIntegracion
 ```
 
-### 2. Instalar dependencias de PHP
+### 2. Instalar dependencias PHP
+
 ```bash
 composer install
 ```
 
 ### 3. Configurar variables de entorno
+
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-Edita el archivo `.env` con tus credenciales de PostgreSQL:
+Edita `.env` con tus credenciales:
+
 - `DB_CONNECTION=pgsql`
 - `DB_HOST=tu-host-postgres`
 - `DB_PORT=5432`
 - `DB_DATABASE=tu-base-datos`
 - `DB_USERNAME=tu-usuario`
-- `DB_PASSWORD=tu-contraseña`
+- `DB_PASSWORD=tu-contrasena`
+- `ADMIN_BOOTSTRAP_NAME=Administrador`
+- `ADMIN_BOOTSTRAP_EMAIL=admin@example.com`
+- `ADMIN_BOOTSTRAP_PASSWORD=DefineUnaClaveSeguraAqui`
 
 ### 4. Ejecutar migraciones y seeders
+
 ```bash
 php artisan migrate:fresh --seed
 ```
 
-### 5. Instalar dependencias de npm
+### 5. Instalar dependencias frontend
+
 ```bash
 npm install
 ```
 
 ### 6. Compilar assets
+
 ```bash
 npm run build
 ```
 
-### 7. Iniciar servidor de desarrollo
+### 7. Iniciar servidor
+
 ```bash
 php artisan serve
 ```
 
-La aplicación estará disponible en: **http://localhost:8000**
+La aplicacion estara disponible en `http://localhost:8000`.
 
-## Notas Importantes
+## Rutas principales
 
-- Asegúrate de tener PostgreSQL instalado y configurado en tu sistema.
-- Si usas Docker o un contenedor, ajusta las variables de entorno en consecuencia.
-- Para desarrollo, puedes usar una base de datos local de PostgreSQL.
+### Publicas
 
-## Rutas Disponibles
+- `GET /`
+- `POST /login`
+- `POST /register`
 
-### Públicas (sin autenticación)
-- `GET /` - Home
-- `POST /login` - Login
-- `POST /register` - Registro
+### Autenticadas
 
-### Autenticadas (todos los usuarios)
-- `GET /dashboard` - Dashboard
-- `GET /eventos` - Listado de eventos
-- `GET /eventos/{evento}` - Detalle de evento
+- `GET /dashboard`
+- `GET /eventos`
+- `GET /eventos/{evento}`
 
-### Solo Admin
-- `GET /eventos/crear` - Crear evento
-- `POST /eventos` - Guardar evento
-- `GET /eventos/{evento}/editar` - Editar evento
-- `PATCH /eventos/{evento}` - Actualizar evento
-- `DELETE /eventos/{evento}` - Eliminar evento
+### Solo admin
 
-## Estructura del Proyecto
+- `GET /eventos/crear`
+- `POST /eventos`
+- `GET /eventos/{evento}/editar`
+- `PATCH /eventos/{evento}`
+- `DELETE /eventos/{evento}`
 
-```
+## Estructura general
+
+```text
 app/
-├── Models/
-│   ├── Evento.php
-│   ├── EstadoEvento.php
-│   ├── Parqueadero.php
-│   └── User.php
-├── Http/
-│   ├── Controllers/
-│   │   ├── EventoController.php
-│   │   └── DashboardController.php
-│   └── Middleware/
-│       └── AdminMiddleware.php
-└── Policies/
-    └── EventoPolicy.php
-
 database/
-├── migrations/
-│   ├── 2026_04_14_191328_create_estados_evento_table.php
-│   ├── 2026_04_14_191335_create_eventos_table.php
-│   └── 2026_04_14_191343_create_parqueaderos_table.php
-└── seeders/
-    ├── DatabaseSeeder.php
-    ├── TipoRolSeeder.php
-    └── EstadoEventoSeeder.php
-
 resources/views/
-├── layouts/
-│   └── app.blade.php
-├── dashboard.blade.php
-└── eventos/
-    ├── index.blade.php
-    ├── create.blade.php
-    ├── edit.blade.php
-    └── show.blade.php
+routes/
+tests/
 ```
 
-## Modelos de Datos
-
-### Usuarios
-- id
-- name
-- email
-- password
-- id_tipo_rol
-- email_verified_at
-- timestamps
-
-### Eventos
-- id
-- nombre
-- descripcion
-- fecha
-- hora
-- lugar
-- tiene_parqueadero (boolean)
-- capacidad_maxima
-- id_estado (FK)
-- id_usuario (FK)
-- timestamps
-- soft deletes
-
-### Estados de Evento
-- id
-- nombre (borrador, publicado, cerrado, cancelado)
-- descripcion
-- timestamps
-
-### Parqueaderos
-- id
-- id_usuario (FK)
-- id_evento (FK)
-- capacidad_total
-- cupos_disponibles
-- descripcion
-- timestamps
-- soft deletes
-
-## Comandos Útiles
-
-```bash
-# Ejecutar migraciones
-php artisan migrate
-
-# Resetear base de datos
-php artisan migrate:reset
-
-# Resetear y ejecutar migrations + seeders
-php artisan migrate:fresh --seed
-
-# Crear usuario de prueba
-php artisan tinker
-User::create(['name' => 'Test', 'email' => 'test@test.com', 'password' => bcrypt('password'), 'id_tipo_rol' => 2]);
-
-# Compilar assets en desarrollo
-npm run dev
-
-# Compilar assets para producción
-npm run build
-
-# Iniciar servidor
-php artisan serve
-
-# Ver logs
-php artisan tinker Log::info('mensaje')
-```
-
-## Variables de Entorno
+## Variables de entorno de referencia
 
 ```env
 DB_CONNECTION=pgsql
-DB_HOST=oscar.postgres.database.azure.com
+DB_HOST=localhost
 DB_PORT=5432
-DB_DATABASE=postgres
-DB_USERNAME=oscar
-DB_PASSWORD="**********"
+DB_DATABASE=nombre_base
+DB_USERNAME=usuario
+DB_PASSWORD=contrasena_segura
 DB_SSLMODE=require
+```
 
-## Notas Importantes
+## Notas
 
-- El sistema utiliza SQLite como base de datos por defecto
-- La autenticación usa Laravel Breeze
-- Los estilos están compilados con Vite
-- Las vistas usan Tailwind CSS
-- El control de acceso se implementa con Policies
+- Usa `.env.example` como plantilla.
+- No subas credenciales reales al repositorio.
+- El bootstrap del administrador depende de variables de entorno.
 
 ## Licencia
 
 MIT
-
-## Autor
-
-Desarrollado para Universidad del Magdalena
