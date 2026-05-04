@@ -64,9 +64,27 @@ jobs:
         shell: bash
         run: python -m pip install "semgrep>=1,<2"
 
-      - name: Validate custom Semgrep rules
+      - name: Validate local Semgrep rules
         shell: bash
         run: semgrep --validate --config .semgrep
+
+      - name: Probe Semgrep configs individually
+        shell: bash
+        run: |
+          echo "Checking p/ci"
+          semgrep scan --config p/ci --json --output /tmp/semgrep-ci.json .
+
+          echo "Checking p/php"
+          semgrep scan --config p/php --json --output /tmp/semgrep-php.json .
+
+          echo "Checking p/laravel"
+          semgrep scan --config p/laravel --json --output /tmp/semgrep-laravel.json .
+
+          echo "Checking p/secrets"
+          semgrep scan --config p/secrets --json --output /tmp/semgrep-secrets.json .
+
+          echo "Checking local .semgrep rules"
+          semgrep scan --config .semgrep --json --output /tmp/semgrep-local.json .
 
       - name: Run Semgrep and generate SARIF
         id: semgrep
@@ -81,6 +99,7 @@ jobs:
           fi
 
           semgrep scan \
+            --debug \
             --config p/ci \
             --config p/php \
             --config p/laravel \
@@ -110,6 +129,7 @@ jobs:
           fi
 
           semgrep scan \
+            --debug \
             --config p/ci \
             --config p/php \
             --config p/laravel \
