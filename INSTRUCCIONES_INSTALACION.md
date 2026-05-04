@@ -33,8 +33,8 @@ Antes de ejecutar seeders, agrega:
 
 ```env
 ADMIN_BOOTSTRAP_NAME="Administrador"
-ADMIN_BOOTSTRAP_EMAIL=admin@example.com
-ADMIN_BOOTSTRAP_PASSWORD=DefineUnaClaveSeguraAqui
+ADMIN_BOOTSTRAP_EMAIL=
+ADMIN_BOOTSTRAP_PASSWORD=
 ```
 
 Si `ADMIN_BOOTSTRAP_EMAIL` o `ADMIN_BOOTSTRAP_PASSWORD` no estan definidas, el seeder no crea el administrador.

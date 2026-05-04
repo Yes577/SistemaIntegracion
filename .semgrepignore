@@ -4,3 +4,5 @@ storage/
 bootstrap/cache/
 public/build/
 docs/security/semgrep-devsecops-report.md
+README.md
+INSTRUCCIONES_INSTALACION.md

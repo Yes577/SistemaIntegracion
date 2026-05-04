@@ -38,8 +38,8 @@ El proyecto no versiona credenciales por defecto. Antes de ejecutar los seeders,
 
 ```env
 ADMIN_BOOTSTRAP_NAME="Administrador"
-ADMIN_BOOTSTRAP_EMAIL=admin@example.com
-ADMIN_BOOTSTRAP_PASSWORD=DefineUnaClaveSeguraAqui
+ADMIN_BOOTSTRAP_EMAIL=
+ADMIN_BOOTSTRAP_PASSWORD=
 ```
 
 Si `ADMIN_BOOTSTRAP_EMAIL` o `ADMIN_BOOTSTRAP_PASSWORD` no estan definidas, el seeder omite la creacion del administrador.
@@ -73,10 +73,10 @@ Edita `.env` con tus credenciales:
 - `DB_PORT=5432`
 - `DB_DATABASE=tu-base-datos`
 - `DB_USERNAME=tu-usuario`
-- `DB_PASSWORD=tu-contrasena`
+- `DB_PASSWORD=`
 - `ADMIN_BOOTSTRAP_NAME=Administrador`
-- `ADMIN_BOOTSTRAP_EMAIL=admin@example.com`
-- `ADMIN_BOOTSTRAP_PASSWORD=DefineUnaClaveSeguraAqui`
+- `ADMIN_BOOTSTRAP_EMAIL=`
+- `ADMIN_BOOTSTRAP_PASSWORD=`
 
 ### 4. Ejecutar migraciones y seeders
 
@@ -144,7 +144,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_DATABASE=nombre_base
 DB_USERNAME=usuario
-DB_PASSWORD=contrasena_segura
+DB_PASSWORD=
 DB_SSLMODE=require
 ```
 
