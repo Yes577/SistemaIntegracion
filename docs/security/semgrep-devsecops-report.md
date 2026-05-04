@@ -220,11 +220,7 @@ rules:
     message: Consulta raw construida por concatenacion detectada. Usa query bindings en lugar de concatenar entrada.
     severity: ERROR
     languages: [php]
-    pattern-either:
-      - pattern: DB::select("..." . $X . ...)
-      - pattern: DB::statement("..." . $X . ...)
-      - pattern: DB::unprepared("..." . $X . ...)
-      - pattern: DB::raw("..." . $X . ...)
+    pattern-regex: 'DB::(select|statement|unprepared|raw)\s*\(\s*[^)]*\.[^)]*\)'
 ```
 
 ### Cobertura de vulnerabilidades solicitada
