@@ -1,0 +1,115 @@
+name: Semgrep SAST
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+  security-events: write
+
+jobs:
+  semgrep:
+    name: Semgrep (${{ github.event_name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      SEMGREP_SEND_METRICS: "off"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine branch policy
+        id: policy
+        shell: bash
+        run: |
+          echo "scan_mode=develop-full" >> "$GITHUB_OUTPUT"
+          echo "baseline_ref=" >> "$GITHUB_OUTPUT"
+          echo "gate_on_error=false" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && "${GITHUB_BASE_REF}" == "develop" ]]; then
+            echo "scan_mode=pr-develop-baseline" >> "$GITHUB_OUTPUT"
+            echo "baseline_ref=origin/develop" >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" && "${GITHUB_BASE_REF}" == "main" ]]; then
+            echo "scan_mode=pr-main-strict" >> "$GITHUB_OUTPUT"
+            echo "gate_on_error=true" >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF_NAME}" == "main" ]]; then
+            echo "scan_mode=main-full-strict" >> "$GITHUB_OUTPUT"
+            echo "gate_on_error=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch develop baseline
+        if: steps.policy.outputs.baseline_ref != ''
+        shell: bash
+        run: git fetch origin develop --depth=1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Semgrep
+        shell: bash
+        run: python -m pip install "semgrep>=1,<2"
+
+      - name: Run Semgrep and generate SARIF
+        id: semgrep
+        continue-on-error: true
+        shell: bash
+        env:
+          BASELINE_REF: ${{ steps.policy.outputs.baseline_ref }}
+        run: |
+          EXTRA_ARGS=()
+          if [[ -n "${BASELINE_REF}" ]]; then
+            EXTRA_ARGS+=("--baseline-ref=${BASELINE_REF}")
+          fi
+
+          semgrep scan \
+            --config p/ci \
+            --config p/php \
+            --config p/laravel \
+            --config p/secrets \
+            --config .semgrep \
+            --sarif \
+            --output semgrep.sarif \
+            "${EXTRA_ARGS[@]}"
+
+      - name: Upload SARIF to GitHub Security
+        if: always() && hashFiles('semgrep.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep-${{ steps.policy.outputs.scan_mode }}
+
+      - name: Enforce ERROR findings on main
+        if: steps.policy.outputs.gate_on_error == 'true'
+        shell: bash
+        env:
+          BASELINE_REF: ${{ steps.policy.outputs.baseline_ref }}
+        run: |
+          EXTRA_ARGS=()
+          if [[ -n "${BASELINE_REF}" ]]; then
+            EXTRA_ARGS+=("--baseline-ref=${BASELINE_REF}")
+          fi
+
+          semgrep scan \
+            --config p/ci \
+            --config p/php \
+            --config p/laravel \
+            --config p/secrets \
+            --config .semgrep \
+            --severity ERROR \
+            --error \
+            "${EXTRA_ARGS[@]}"

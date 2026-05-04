@@ -1,0 +1,41 @@
+rules:
+  - id: php.lang.security.no-eval
+    message: Evita eval(); permite ejecucion dinamica de codigo y habilita RCE.
+    severity: ERROR
+    languages: [php]
+    pattern: eval(...)
+
+  - id: php.lang.security.no-shell-exec-like
+    message: Evita shell_exec/exec/system/passthru/proc_open/popen con datos controlables.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: shell_exec(...)
+      - pattern: exec(...)
+      - pattern: system(...)
+      - pattern: passthru(...)
+      - pattern: proc_open(...)
+      - pattern: popen(...)
+
+  - id: php.crypto.security.no-md5
+    message: MD5 es una primitiva debil para seguridad; usa bcrypt, Argon2 o SHA-256/HMAC segun el caso.
+    severity: ERROR
+    languages: [php]
+    pattern: md5(...)
+
+  - id: laravel.debug.no-dd-or-dump
+    message: Elimina dd()/dump() del codigo versionado para evitar fuga de informacion y detencion del flujo.
+    severity: WARNING
+    languages: [php]
+    pattern-either:
+      - pattern: dd(...)
+      - pattern: dump(...)
+
+  - id: blade.xss.no-raw-output
+    message: Salida Blade sin escape detectada. Usa {{ ... }} o sanitiza la entrada antes de renderizar.
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - resources/views/**/*.blade.php
+    pattern-regex: '\{!!\s*[$][^!]+!!\}'
