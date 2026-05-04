@@ -38,4 +38,4 @@ rules:
     paths:
       include:
         - resources/views/**/*.blade.php
-    pattern-regex: '\{!!\s*[$][^!]+!!\}'
+    pattern: "{!! ... !!}"
