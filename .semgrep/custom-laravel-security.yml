@@ -31,6 +31,39 @@ rules:
       - pattern: dd(...)
       - pattern: dump(...)
 
+  - id: laravel.mass-assignment.request-all
+    message: Uso directo de request()->all() en create/update detectado. Define fillable/guarded y valida campos permitidos.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: $MODEL::create($REQ->all())
+      - pattern: $MODEL::forceCreate($REQ->all())
+      - pattern: $MODEL->update($REQ->all())
+      - pattern: $MODEL->fill($REQ->all())
+
+  - id: laravel.sql-injection.raw-query-concat
+    message: Consulta raw construida por concatenacion detectada. Usa query bindings en lugar de concatenar entrada.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: DB::select("..." . $X . ...)
+      - pattern: DB::statement("..." . $X . ...)
+      - pattern: DB::unprepared("..." . $X . ...)
+      - pattern: DB::raw("..." . $X . ...)
+      - pattern: $QUERY = "..." . $X . ...; DB::select($QUERY)
+      - pattern: $QUERY = "..." . $X . ...; DB::statement($QUERY)
+
+  - id: laravel.path-traversal.user-controlled-path
+    message: Ruta controlada por usuario detectada en operacion de archivo. Normaliza y valida el path antes de usarlo.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: Storage::get($REQ->input(...))
+      - pattern: Storage::download($REQ->input(...))
+      - pattern: response()->download($REQ->input(...))
+      - pattern: File::get($REQ->input(...))
+      - pattern: File::delete($REQ->input(...))
+
   - id: blade.xss.no-raw-output
     message: Salida Blade sin escape detectada. Usa {{ ... }} o sanitiza la entrada antes de renderizar.
     severity: ERROR

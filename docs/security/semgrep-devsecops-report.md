@@ -85,7 +85,7 @@ jobs:
         shell: bash
         run: python -m pip install "semgrep>=1,<2"
 
-      - name: Validate custom Semgrep rules
+      - name: Validate local Semgrep rules
         shell: bash
         run: semgrep --validate --config .semgrep
 
@@ -104,7 +104,6 @@ jobs:
           semgrep scan \
             --config p/ci \
             --config p/php \
-            --config p/laravel \
             --config p/secrets \
             --config .semgrep \
             --sarif \
@@ -133,7 +132,6 @@ jobs:
           semgrep scan \
             --config p/ci \
             --config p/php \
-            --config p/laravel \
             --config p/secrets \
             --config .semgrep \
             --severity ERROR \
@@ -148,7 +146,7 @@ jobs:
 2. `Determine branch policy` decide si el scan es completo, baseline o estricto.
 3. `Fetch develop baseline` descarga `origin/develop` para PR hacia `develop`.
 4. `Install Semgrep` instala la CLI en el runner Ubuntu.
-5. `Validate custom Semgrep rules` valida las reglas locales antes del escaneo para evitar fallos de configuracion.
+5. `Validate local Semgrep rules` valida las reglas locales antes del escaneo para evitar fallos de configuracion.
 6. `Run Semgrep and generate SARIF` ejecuta Semgrep con los packs y las reglas locales sobre la raiz del proyecto (`.`).
 7. `Upload SARIF to GitHub Security` publica los resultados en la pestaña Security de GitHub.
 8. `Enforce ERROR findings on main` hace un segundo pase con `--severity ERROR --error` y bloquea builds criticas.
@@ -166,8 +164,13 @@ Packs usados:
 
 - `p/ci`
 - `p/php`
-- `p/laravel`
 - `p/secrets`
+- `.semgrep` para reglas Laravel especificas del proyecto
+
+Nota de compatibilidad:
+
+- Durante la validacion en GitHub Actions del 4 de mayo de 2026, `p/laravel` devolvio `exit code 7` al resolver la configuracion del ruleset.
+- Para mantener el pipeline operativo y conservar cobertura sobre Laravel, la implementacion final usa `p/php` + reglas locales en `.semgrep/` para Mass Assignment, SQL Injection con consultas raw, Path Traversal, XSS en Blade y malas practicas de debugging.
 
 Regla personalizada requerida para `eval()` y `dd()`:
 
@@ -199,12 +202,37 @@ rules:
     pattern: Hash::make('admin123')
 ```
 
+Reglas Laravel adicionales aplicadas en `.semgrep/custom-laravel-security.yml`:
+
+```yaml
+rules:
+  - id: laravel.mass-assignment.request-all
+    message: Uso directo de request()->all() en create/update detectado. Define fillable/guarded y valida campos permitidos.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: $MODEL::create($REQ->all())
+      - pattern: $MODEL::forceCreate($REQ->all())
+      - pattern: $MODEL->update($REQ->all())
+      - pattern: $MODEL->fill($REQ->all())
+
+  - id: laravel.sql-injection.raw-query-concat
+    message: Consulta raw construida por concatenacion detectada. Usa query bindings en lugar de concatenar entrada.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: DB::select("..." . $X . ...)
+      - pattern: DB::statement("..." . $X . ...)
+      - pattern: DB::unprepared("..." . $X . ...)
+      - pattern: DB::raw("..." . $X . ...)
+```
+
 ### Cobertura de vulnerabilidades solicitada
 
-- SQL Injection: `p/php` y `p/ci`
-- Mass Assignment: `p/laravel`
+- SQL Injection: `p/php`, `p/ci` y regla `laravel.sql-injection.raw-query-concat`
+- Mass Assignment: regla `laravel.mass-assignment.request-all`
 - Command Injection: `p/php` y regla `php.lang.security.no-shell-exec-like`
-- Path Traversal: `p/php`
+- Path Traversal: `p/php` y regla `laravel.path-traversal.user-controlled-path`
 - Secrets hardcoded: `p/secrets` y regla `laravel.credentials.default-admin-password-seeder`
 - Criptografia debil MD5: regla `php.crypto.security.no-md5`
 - XSS en Blade: regla `blade.xss.no-raw-output`
@@ -309,11 +337,11 @@ docker run --rm `
   semgrep scan `
     --config p/ci `
     --config p/php `
-    --config p/laravel `
     --config p/secrets `
     --config .semgrep `
     --sarif `
-    --output semgrep.sarif
+    --output semgrep.sarif `
+    .
 ```
 
 ### Baseline scan para PR hacia `develop`
@@ -328,12 +356,12 @@ docker run --rm `
   semgrep scan `
     --config p/ci `
     --config p/php `
-    --config p/laravel `
     --config p/secrets `
     --config .semgrep `
     --baseline-ref=origin/develop `
     --sarif `
-    --output semgrep.sarif
+    --output semgrep.sarif `
+    .
 ```
 
 ## G. Ejemplo de salida SARIF
