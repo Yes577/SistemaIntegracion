@@ -88,7 +88,8 @@ jobs:
             --config .semgrep \
             --sarif \
             --output semgrep.sarif \
-            "${EXTRA_ARGS[@]}"
+            "${EXTRA_ARGS[@]}" \
+            .
 
       - name: Upload SARIF to GitHub Security
         if: always() && hashFiles('semgrep.sarif') != ''
@@ -116,4 +117,5 @@ jobs:
             --config .semgrep \
             --severity ERROR \
             --error \
-            "${EXTRA_ARGS[@]}"
+            "${EXTRA_ARGS[@]}" \
+            .

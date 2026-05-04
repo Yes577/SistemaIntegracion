@@ -42,12 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
       SEMGREP_SEND_METRICS: "off"
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -76,14 +77,17 @@ jobs:
         run: git fetch origin develop --depth=1
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Install Semgrep
         shell: bash
         run: python -m pip install "semgrep>=1,<2"
+
+      - name: Validate custom Semgrep rules
+        shell: bash
+        run: semgrep --validate --config .semgrep
 
       - name: Run Semgrep and generate SARIF
         id: semgrep
@@ -105,11 +109,12 @@ jobs:
             --config .semgrep \
             --sarif \
             --output semgrep.sarif \
-            "${EXTRA_ARGS[@]}"
+            "${EXTRA_ARGS[@]}" \
+            .
 
       - name: Upload SARIF to GitHub Security
         if: always() && hashFiles('semgrep.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep.sarif
           category: semgrep-${{ steps.policy.outputs.scan_mode }}
@@ -133,7 +138,8 @@ jobs:
             --config .semgrep \
             --severity ERROR \
             --error \
-            "${EXTRA_ARGS[@]}"
+            "${EXTRA_ARGS[@]}" \
+            .
 ```
 
 ### Explicacion del pipeline
@@ -142,9 +148,10 @@ jobs:
 2. `Determine branch policy` decide si el scan es completo, baseline o estricto.
 3. `Fetch develop baseline` descarga `origin/develop` para PR hacia `develop`.
 4. `Install Semgrep` instala la CLI en el runner Ubuntu.
-5. `Run Semgrep and generate SARIF` ejecuta Semgrep con los packs y las reglas locales.
-6. `Upload SARIF to GitHub Security` publica los resultados en la pestaña Security de GitHub.
-7. `Enforce ERROR findings on main` hace un segundo pase con `--severity ERROR --error` y bloquea builds criticas.
+5. `Validate custom Semgrep rules` valida las reglas locales antes del escaneo para evitar fallos de configuracion.
+6. `Run Semgrep and generate SARIF` ejecuta Semgrep con los packs y las reglas locales sobre la raiz del proyecto (`.`).
+7. `Upload SARIF to GitHub Security` publica los resultados en la pestaña Security de GitHub.
+8. `Enforce ERROR findings on main` hace un segundo pase con `--severity ERROR --error` y bloquea builds criticas.
 
 ### Politicas por rama
 
