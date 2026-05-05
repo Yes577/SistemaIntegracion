@@ -24,6 +24,7 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
       SEMGREP_SEND_METRICS: "off"
+      SEMGREP_SARIF_PATH: ${{ runner.temp }}/semgrep.sarif
 
     steps:
       - name: Checkout repository
@@ -74,6 +75,7 @@ jobs:
         shell: bash
         env:
           BASELINE_REF: ${{ steps.policy.outputs.baseline_ref }}
+          SARIF_PATH: ${{ env.SEMGREP_SARIF_PATH }}
         run: |
           EXTRA_ARGS=()
           if [[ -n "${BASELINE_REF}" ]]; then
@@ -86,15 +88,28 @@ jobs:
             --config p/secrets \
             --config .semgrep \
             --sarif \
-            --output semgrep.sarif \
+            --output "${SARIF_PATH}" \
             "${EXTRA_ARGS[@]}" \
             .
 
+      - name: Check SARIF artifact
+        if: always()
+        id: sarif
+        shell: bash
+        env:
+          SARIF_PATH: ${{ env.SEMGREP_SARIF_PATH }}
+        run: |
+          if [[ -f "${SARIF_PATH}" ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload SARIF to GitHub Security
-        if: always() && hashFiles('semgrep.sarif') != ''
+        if: always() && steps.sarif.outputs.present == 'true'
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: semgrep.sarif
+          sarif_file: ${{ env.SEMGREP_SARIF_PATH }}
           category: semgrep-${{ steps.policy.outputs.scan_mode }}
 
       - name: Enforce ERROR findings on main
