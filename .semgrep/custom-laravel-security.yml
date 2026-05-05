@@ -1,0 +1,68 @@
+rules:
+  - id: php.lang.security.no-eval
+    message: Evita eval(); permite ejecucion dinamica de codigo y habilita RCE.
+    severity: ERROR
+    languages: [php]
+    pattern: eval(...)
+
+  - id: php.lang.security.no-shell-exec-like
+    message: Evita shell_exec/exec/system/passthru/proc_open/popen con datos controlables.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: shell_exec(...)
+      - pattern: exec(...)
+      - pattern: system(...)
+      - pattern: passthru(...)
+      - pattern: proc_open(...)
+      - pattern: popen(...)
+
+  - id: php.crypto.security.no-md5
+    message: MD5 es una primitiva debil para seguridad; usa bcrypt, Argon2 o SHA-256/HMAC segun el caso.
+    severity: ERROR
+    languages: [php]
+    pattern: md5(...)
+
+  - id: laravel.debug.no-dd-or-dump
+    message: Elimina dd()/dump() del codigo versionado para evitar fuga de informacion y detencion del flujo.
+    severity: WARNING
+    languages: [php]
+    pattern-either:
+      - pattern: dd(...)
+      - pattern: dump(...)
+
+  - id: laravel.mass-assignment.request-all
+    message: Uso directo de request()->all() en create/update detectado. Define fillable/guarded y valida campos permitidos.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: $MODEL::create($REQ->all())
+      - pattern: $MODEL::forceCreate($REQ->all())
+      - pattern: $MODEL->update($REQ->all())
+      - pattern: $MODEL->fill($REQ->all())
+
+  - id: laravel.sql-injection.raw-query-concat
+    message: Consulta raw construida por concatenacion detectada. Usa query bindings en lugar de concatenar entrada.
+    severity: ERROR
+    languages: [php]
+    pattern-regex: 'DB::(select|statement|unprepared|raw)\s*\(\s*[^)]*\.[^)]*\)'
+
+  - id: laravel.path-traversal.user-controlled-path
+    message: Ruta controlada por usuario detectada en operacion de archivo. Normaliza y valida el path antes de usarlo.
+    severity: ERROR
+    languages: [php]
+    pattern-either:
+      - pattern: Storage::get($REQ->input(...))
+      - pattern: Storage::download($REQ->input(...))
+      - pattern: response()->download($REQ->input(...))
+      - pattern: File::get($REQ->input(...))
+      - pattern: File::delete($REQ->input(...))
+
+  - id: blade.xss.no-raw-output
+    message: Salida Blade sin escape detectada. Usa {{ ... }} o sanitiza la entrada antes de renderizar.
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - "**/resources/views/**/*.blade.php"
+    pattern: "{!! ... !!}"

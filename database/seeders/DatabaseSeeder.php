@@ -22,11 +22,22 @@ class DatabaseSeeder extends Seeder
             EstadoEventoSeeder::class,
         ]);
 
+        $bootstrapAdminEmail = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', ''));
+        $bootstrapAdminPassword = (string) env('ADMIN_BOOTSTRAP_PASSWORD', '');
+        $bootstrapAdminName = trim((string) env('ADMIN_BOOTSTRAP_NAME', 'Administrador'));
+
+        if ($bootstrapAdminEmail === '' || $bootstrapAdminPassword === '') {
+            $this->command?->warn(
+                'Bootstrap admin skipped: define ADMIN_BOOTSTRAP_EMAIL and ADMIN_BOOTSTRAP_PASSWORD before seeding.'
+            );
+            return;
+        }
+
         User::updateOrCreate([
-            'email' => 'admin@admin.com',
+            'email' => $bootstrapAdminEmail,
         ], [
-            'name' => 'Administrador',
-            'password' => Hash::make('admin123'),
+            'name' => $bootstrapAdminName,
+            'password' => Hash::make($bootstrapAdminPassword),
             'id_tipo_rol' => TipoRol::ADMIN_ID,
         ]);
     }
