@@ -45,6 +45,7 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
       SEMGREP_SEND_METRICS: "off"
+      SEMGREP_SARIF_PATH: .semgrep-results/semgrep.sarif
 
     steps:
       - name: Checkout repository
@@ -101,21 +102,23 @@ jobs:
             EXTRA_ARGS+=("--baseline-ref=${BASELINE_REF}")
           fi
 
+          mkdir -p "$(dirname "${SEMGREP_SARIF_PATH}")"
+
           semgrep scan \
             --config p/ci \
             --config p/php \
             --config p/secrets \
             --config .semgrep \
             --sarif \
-            --output semgrep.sarif \
+            --output "${SEMGREP_SARIF_PATH}" \
             "${EXTRA_ARGS[@]}" \
             .
 
       - name: Upload SARIF to GitHub Security
-        if: always() && hashFiles('semgrep.sarif') != ''
+        if: always() && hashFiles('.semgrep-results/semgrep.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: semgrep.sarif
+          sarif_file: ${{ env.SEMGREP_SARIF_PATH }}
           category: semgrep-${{ steps.policy.outputs.scan_mode }}
 
       - name: Enforce ERROR findings on main
@@ -148,7 +151,7 @@ jobs:
 4. `Install Semgrep` instala la CLI en el runner Ubuntu.
 5. `Validate local Semgrep rules` valida las reglas locales antes del escaneo para evitar fallos de configuracion.
 6. `Run Semgrep and generate SARIF` ejecuta Semgrep con los packs y las reglas locales sobre la raiz del proyecto (`.`).
-7. El reporte SARIF se genera fuera del workspace del repositorio para evitar falsos positivos de `p/secrets` sobre el propio artefacto.
+7. El reporte SARIF se genera en `.semgrep-results/semgrep.sarif`, carpeta excluida por `.semgrepignore`, para evitar falsos positivos de `p/secrets` sobre el propio artefacto.
 8. `Upload SARIF to GitHub Security` publica los resultados en la pestaña Security de GitHub.
 9. `Enforce ERROR findings on main` hace un segundo pase con `--severity ERROR --error` y bloquea builds criticas.
 
@@ -170,7 +173,7 @@ Packs usados:
 
 Manejo de artefactos:
 
-- El archivo SARIF del pipeline se escribe en un directorio temporal del runner, fuera del workspace del repositorio.
+- El archivo SARIF del pipeline se escribe en `.semgrep-results/semgrep.sarif`.
 - `.semgrepignore` excluye `semgrep.sarif`, `*.sarif` y `.semgrep-results/` para evitar que `p/secrets` analice artefactos de salida.
 
 Nota de compatibilidad:
