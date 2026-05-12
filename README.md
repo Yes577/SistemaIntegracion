@@ -8,151 +8,93 @@ Sistema de gestion de eventos desarrollado con Laravel 12, Blade, Tailwind CSS y
 - Frontend: Blade Templates + Tailwind CSS
 - Base de datos: PostgreSQL
 - Autenticacion: Laravel Breeze
+- Colas: Laravel Queue con driver `database`
+- Correo: SMTP estandar
 - Build tool: Vite
 
-## Funcionalidades
+## Modulos principales
 
-### Gestion de eventos
+- Gestion de eventos y estados
+- Inscripciones y cupos
+- Parqueaderos asociados
+- Notificaciones transaccionales por correo
+- Generacion de codigos QR por inscripcion
+- Check-in QR con validacion y proteccion contra reutilizacion
+- Reporte operativo por evento
 
-- Crear eventos solo para administradores
-- Editar eventos solo para administradores
-- Eliminar eventos solo para administradores
-- Ver listado de eventos
-- Ver detalle de eventos
-- Manejar estados de evento: borrador, publicado, cerrado y cancelado
+## Configuracion rapida
 
-### Gestion de parqueaderos
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+npm install
+npm run build
+```
 
-- Crear parqueadero al crear un evento
-- Mostrar y ocultar campos dinamicos en formularios
-- Gestionar capacidad, cupos disponibles y descripcion
+## Variables de entorno importantes
 
-### Control de roles
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=sistema_integracion
+DB_USERNAME=postgres
+DB_PASSWORD=
 
-- Admin: acceso completo a crear, editar y eliminar eventos
-- Usuario: acceso de solo lectura
+QUEUE_CONNECTION=database
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@example.com
+MAIL_FROM_NAME="${APP_NAME}"
+
+EVENT_NOTIFICATION_QUEUE=mail
+EVENT_REMINDER_HOURS=24
+EVENT_QR_TTL_HOURS=24
+```
+
+## Operacion del modulo QR y correo
+
+```bash
+php artisan queue:work --queue=mail,default
+php artisan schedule:work
+php artisan eventos:enviar-recordatorios
+```
+
+Tambien existe un envio manual de recordatorios desde el reporte del evento en el panel administrador.
+
+## Testing
+
+```bash
+php artisan test
+```
+
+La suite incluye pruebas para:
+
+- envio de correos
+- generacion de QR
+- validacion QR
+- check-in
+- bloqueo de reutilizacion
+
+## Documentacion tecnica
+
+La guia completa del modulo esta en [docs/modulos/notificaciones-qr-checkin.md](docs/modulos/notificaciones-qr-checkin.md).
 
 ## Bootstrap de administrador
 
-El proyecto no versiona credenciales por defecto. Antes de ejecutar los seeders, define estas variables en tu archivo `.env`:
+Antes de ejecutar los seeders en entornos nuevos, define:
 
 ```env
 ADMIN_BOOTSTRAP_NAME="Administrador"
 ADMIN_BOOTSTRAP_EMAIL=
 ADMIN_BOOTSTRAP_PASSWORD=
 ```
-
-Si `ADMIN_BOOTSTRAP_EMAIL` o `ADMIN_BOOTSTRAP_PASSWORD` no estan definidas, el seeder omite la creacion del administrador.
-
-## Instalacion y configuracion
-
-### 1. Clonar repositorio
-
-```bash
-git clone <repositorio>
-cd SistemaIntegracion
-```
-
-### 2. Instalar dependencias PHP
-
-```bash
-composer install
-```
-
-### 3. Configurar variables de entorno
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-Edita `.env` con tus credenciales:
-
-- `DB_CONNECTION=pgsql`
-- `DB_HOST=tu-host-postgres`
-- `DB_PORT=5432`
-- `DB_DATABASE=tu-base-datos`
-- `DB_USERNAME=tu-usuario`
-- `DB_PASSWORD=`
-- `ADMIN_BOOTSTRAP_NAME=Administrador`
-- `ADMIN_BOOTSTRAP_EMAIL=`
-- `ADMIN_BOOTSTRAP_PASSWORD=`
-
-### 4. Ejecutar migraciones y seeders
-
-```bash
-php artisan migrate:fresh --seed
-```
-
-### 5. Instalar dependencias frontend
-
-```bash
-npm install
-```
-
-### 6. Compilar assets
-
-```bash
-npm run build
-```
-
-### 7. Iniciar servidor
-
-```bash
-php artisan serve
-```
-
-La aplicacion estara disponible en `http://localhost:8000`.
-
-## Rutas principales
-
-### Publicas
-
-- `GET /`
-- `POST /login`
-- `POST /register`
-
-### Autenticadas
-
-- `GET /dashboard`
-- `GET /eventos`
-- `GET /eventos/{evento}`
-
-### Solo admin
-
-- `GET /eventos/crear`
-- `POST /eventos`
-- `GET /eventos/{evento}/editar`
-- `PATCH /eventos/{evento}`
-- `DELETE /eventos/{evento}`
-
-## Estructura general
-
-```text
-app/
-database/
-resources/views/
-routes/
-tests/
-```
-
-## Variables de entorno de referencia
-
-```env
-DB_CONNECTION=pgsql
-DB_HOST=localhost
-DB_PORT=5432
-DB_DATABASE=nombre_base
-DB_USERNAME=usuario
-DB_PASSWORD=
-DB_SSLMODE=require
-```
-
-## Notas
-
-- Usa `.env.example` como plantilla.
-- No subas credenciales reales al repositorio.
-- El bootstrap del administrador depende de variables de entorno.
 
 ## Licencia
 

@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -50,8 +52,17 @@ class Evento extends Model
         return $this->hasOne(Parqueadero::class, 'id_evento');
     }
 
-    public function inscripciones()
+    public function inscripciones(): HasMany
     {
         return $this->hasMany(Inscripcion::class, 'id_evento');
+    }
+
+    public function startsAt(): CarbonImmutable
+    {
+        return CarbonImmutable::parse(sprintf(
+            '%s %s',
+            $this->fecha->format('Y-m-d'),
+            $this->hora->format('H:i:s'),
+        ), config('app.timezone'));
     }
 }
