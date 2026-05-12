@@ -7,8 +7,8 @@
             <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p class="section-eyebrow">Admin event matrix</p>
-                    <h2 class="mt-4 text-4xl font-black text-white">Coordina el calendario y las zonas de parqueo.</h2>
-                    <p class="mt-3 max-w-2xl text-soft">Administra cada evento desde una vista mas clara, con acciones rapidas y lectura de contexto.</p>
+                    <h2 class="mt-4 text-4xl font-black text-white">Coordina el calendario y la operacion del acceso.</h2>
+                    <p class="mt-3 max-w-2xl text-soft">Ahora puedes gestionar el ciclo completo del evento: cupos, notificaciones, QR, reportes y check-in.</p>
                 </div>
                 <a href="{{ route('admin.eventos.create') }}" class="theme-button-primary">
                     <i class="bi bi-plus-circle"></i>
@@ -33,12 +33,21 @@
                         <div class="mt-6 space-y-3 text-sm text-soft">
                             <p><i class="bi bi-calendar3 me-2 text-cyan-200"></i>{{ $evento->fecha->format('d/m/Y') }} - {{ $evento->hora->format('H:i') }}</p>
                             <p><i class="bi bi-geo-alt me-2 text-amber-200"></i>{{ $evento->lugar }}</p>
+                            <p><i class="bi bi-people me-2 text-emerald-200"></i>{{ $evento->inscripciones->count() }} inscritos</p>
                         </div>
 
                         <div class="mt-6 flex flex-wrap gap-2">
                             <a href="{{ route('eventos.show', $evento) }}" class="theme-button-secondary">
                                 <i class="bi bi-eye"></i>
                                 Ver
+                            </a>
+                            <a href="{{ route('admin.eventos.report', $evento) }}" class="theme-button-secondary">
+                                <i class="bi bi-bar-chart"></i>
+                                Reporte
+                            </a>
+                            <a href="{{ route('admin.eventos.checkin', $evento) }}" class="theme-button-secondary">
+                                <i class="bi bi-qr-code-scan"></i>
+                                Check-in
                             </a>
                             <a href="{{ route('admin.eventos.edit', $evento) }}" class="theme-button-primary">
                                 <i class="bi bi-pencil-square"></i>

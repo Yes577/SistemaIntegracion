@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EventoDatosActualizados;
 use App\Models\Evento;
 use App\Models\EstadoEvento;
 use App\Models\Parqueadero;
 use App\Models\TipoRol;
+use App\Services\QrTokenService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -23,12 +25,9 @@ class EventoController extends Controller
 
         if ($user) {
             if ($user->id_tipo_rol === TipoRol::ADMIN_ID) {
-                // Administradores: solo ven sus propios eventos (independientemente del estado)
                 $query->where('id_usuario', $user->id);
             } else {
-                // Usuarios normales: ven todos los eventos de todos los administradores
-                // pero filtrados por estado (publicado, cerrado o cancelado)
-                $query->whereHas('estado', function ($q) {
+                $query->whereHas('estado', function ($q): void {
                     $q->whereIn('nombre', [
                         EstadoEvento::PUBLICADO,
                         EstadoEvento::CERRADO,
@@ -41,6 +40,7 @@ class EventoController extends Controller
         $eventos = $query->paginate(10);
 
         $viewPath = request()->routeIs('admin.*') ? 'admin.eventos.index' : 'eventos.index';
+
         return view($viewPath, compact('eventos'));
     }
 
@@ -51,6 +51,7 @@ class EventoController extends Controller
     {
         $estados = EstadoEvento::all();
         $viewPath = request()->routeIs('admin.*') ? 'admin.eventos.create' : 'eventos.create';
+
         return view($viewPath, compact('estados'));
     }
 
@@ -69,20 +70,20 @@ class EventoController extends Controller
             'id_estado' => 'required|exists:estados_evento,id',
             'tiene_parqueadero' => 'boolean',
             'parqueadero_capacidad' => 'nullable|required_if:tiene_parqueadero,true|integer|min:1',
-            'parqueadero_cupos' => 'nullable|required_if:tiene_parqueadero,true|integer|min:1',
+            'parqueadero_cupos' => 'nullable|required_if:tiene_parqueadero,true|integer|min:0',
             'parqueadero_descripcion' => 'nullable|string',
         ]);
 
         $evento = Evento::create([
-            'nombre'           => $validated['nombre'],
-            'descripcion'      => $validated['descripcion'],
-            'fecha'            => $validated['fecha'],
-            'hora'             => $validated['hora'],
-            'lugar'            => $validated['lugar'],
+            'nombre' => $validated['nombre'],
+            'descripcion' => $validated['descripcion'],
+            'fecha' => $validated['fecha'],
+            'hora' => $validated['hora'],
+            'lugar' => $validated['lugar'],
             'capacidad_maxima' => $validated['capacidad_maxima'],
-            'capacidad_actual' => $validated['capacidad_maxima'], // Igual a maxima al crear
-            'id_estado'        => $validated['id_estado'],
-            'id_usuario'       => auth()->id(),
+            'capacidad_actual' => $validated['capacidad_maxima'],
+            'id_estado' => $validated['id_estado'],
+            'id_usuario' => auth()->id(),
             'tiene_parqueadero' => $validated['tiene_parqueadero'] ?? false,
         ]);
 
@@ -105,13 +106,13 @@ class EventoController extends Controller
     public function show(Evento $evento): View
     {
         $user = auth()->user();
-        
-        // Si es admin, verificar que sea el dueño
+
         if ($user && $user->id_tipo_rol === TipoRol::ADMIN_ID && $evento->id_usuario !== $user->id) {
             abort(403, 'No tienes permiso para ver este evento.');
         }
 
-        $evento->load(['estado', 'usuario', 'parqueadero', 'inscripciones']);
+        $evento->load(['estado', 'usuario', 'parqueadero', 'inscripciones.user']);
+
         return view('eventos.show', compact('evento'));
     }
 
@@ -121,25 +122,24 @@ class EventoController extends Controller
     public function edit(Evento $evento): View
     {
         $user = auth()->user();
-        
-        // Solo el dueño administrador puede editar
+
         if ($evento->id_usuario !== $user->id) {
             abort(403, 'No puedes editar un evento que no creaste.');
         }
 
         $estados = EstadoEvento::all();
         $viewPath = request()->routeIs('admin.*') ? 'admin.eventos.edit' : 'eventos.edit';
+
         return view($viewPath, compact('evento', 'estados'));
     }
 
     /**
      * Update the specified evento in storage.
      */
-    public function update(Request $request, Evento $evento)
+    public function update(Request $request, Evento $evento, QrTokenService $qrTokenService)
     {
         $user = auth()->user();
-        
-        // Solo el dueño administrador puede actualizar
+
         if ($evento->id_usuario !== $user->id) {
             abort(403, 'No puedes actualizar un evento que no creaste.');
         }
@@ -154,23 +154,59 @@ class EventoController extends Controller
             'id_estado' => 'required|exists:estados_evento,id',
             'tiene_parqueadero' => 'boolean',
             'parqueadero_capacidad' => 'nullable|required_if:tiene_parqueadero,true|integer|min:1',
-            'parqueadero_cupos' => 'nullable|required_if:tiene_parqueadero,true|integer|min:1',
+            'parqueadero_cupos' => 'nullable|required_if:tiene_parqueadero,true|integer|min:0',
             'parqueadero_descripcion' => 'nullable|string',
         ]);
 
+        $inscritosActuales = $evento->inscripciones()->count();
+        $reservasParqueadero = $evento->inscripciones()->whereNotNull('id_parqueadero')->count();
+
+        if ($validated['capacidad_maxima'] < $inscritosActuales) {
+            return back()
+                ->withErrors([
+                    'capacidad_maxima' => "La capacidad maxima no puede ser menor al total de inscritos actuales ({$inscritosActuales}).",
+                ])
+                ->withInput();
+        }
+
+        if (($validated['tiene_parqueadero'] ?? false)
+            && (($validated['parqueadero_cupos'] ?? 0) + $reservasParqueadero) > ($validated['parqueadero_capacidad'] ?? 0)) {
+            return back()
+                ->withErrors([
+                    'parqueadero_cupos' => 'Los cupos disponibles del parqueadero no son consistentes con las reservas ya existentes.',
+                ])
+                ->withInput();
+        }
+
+        $cambios = [];
+        $fechaAnterior = $evento->fecha->format('Y-m-d');
+        $horaAnterior = $evento->hora->format('H:i');
+        $lugarAnterior = $evento->lugar;
+
+        if ($fechaAnterior !== $validated['fecha']) {
+            $cambios['fecha'] = ['anterior' => $fechaAnterior, 'nuevo' => $validated['fecha']];
+        }
+
+        if ($horaAnterior !== $validated['hora']) {
+            $cambios['hora'] = ['anterior' => $horaAnterior, 'nuevo' => $validated['hora']];
+        }
+
+        if ($lugarAnterior !== $validated['lugar']) {
+            $cambios['lugar'] = ['anterior' => $lugarAnterior, 'nuevo' => $validated['lugar']];
+        }
+
         $evento->update([
-            'nombre'            => $validated['nombre'],
-            'descripcion'       => $validated['descripcion'],
-            'fecha'             => $validated['fecha'],
-            'hora'              => $validated['hora'],
-            'lugar'             => $validated['lugar'],
-            'capacidad_maxima'  => $validated['capacidad_maxima'],
-            'capacidad_actual'  => $validated['capacidad_maxima'], // Se resetea al editar
-            'id_estado'         => $validated['id_estado'],
+            'nombre' => $validated['nombre'],
+            'descripcion' => $validated['descripcion'],
+            'fecha' => $validated['fecha'],
+            'hora' => $validated['hora'],
+            'lugar' => $validated['lugar'],
+            'capacidad_maxima' => $validated['capacidad_maxima'],
+            'capacidad_actual' => $validated['capacidad_maxima'] - $inscritosActuales,
+            'id_estado' => $validated['id_estado'],
             'tiene_parqueadero' => $validated['tiene_parqueadero'] ?? false,
         ]);
 
-        // Handle parking if applicable
         if ($evento->tiene_parqueadero) {
             if ($evento->parqueadero) {
                 $evento->parqueadero->update([
@@ -187,8 +223,16 @@ class EventoController extends Controller
                     'descripcion' => $validated['parqueadero_descripcion'],
                 ]);
             }
-        } else if ($evento->parqueadero) {
+        } elseif ($evento->parqueadero) {
             $evento->parqueadero->delete();
+        }
+
+        if (array_intersect(array_keys($cambios), ['fecha', 'hora']) !== []) {
+            $qrTokenService->syncInscripcionesForEvent($evento->fresh(), true);
+        }
+
+        if ($cambios !== [] && $evento->inscripciones()->exists()) {
+            event(new EventoDatosActualizados($evento->fresh(), $cambios));
         }
 
         return redirect()->route('admin.eventos.index')->with('success', 'Evento actualizado exitosamente.');
@@ -200,13 +244,13 @@ class EventoController extends Controller
     public function destroy(Evento $evento)
     {
         $user = auth()->user();
-        
-        // Solo el dueño administrador puede eliminar
+
         if ($evento->id_usuario !== $user->id) {
             abort(403, 'No puedes eliminar un evento que no creaste.');
         }
 
         $evento->delete();
+
         return redirect()->route('admin.eventos.index')->with('success', 'Evento eliminado exitosamente.');
     }
 }

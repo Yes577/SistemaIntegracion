@@ -285,6 +285,16 @@
         color: #ffe4e6;
     }
 
+    .scanner-shell {
+        @apply overflow-hidden rounded-[1.8rem] border bg-slate-950/70 p-4;
+        min-height: 360px;
+        border-color: rgba(103, 232, 249, 0.16);
+    }
+
+    .scanner-shell video {
+        @apply rounded-[1.4rem];
+    }
+
     .hero-orbit {
         position: absolute;
         border-radius: 9999px;

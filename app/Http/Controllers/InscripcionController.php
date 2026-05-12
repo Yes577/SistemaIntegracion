@@ -2,44 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\InscripcionRegistrada;
 use App\Models\Evento;
 use App\Models\Inscripcion;
+use App\Services\QrTokenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class InscripcionController extends Controller
 {
     /**
-     * Inscribir al usuario autenticado en un evento (y opcionalmente en el parqueadero).
+     * Inscribir al usuario autenticado en un evento.
      */
-    public function store(Request $request, Evento $evento)
+    public function store(Request $request, Evento $evento, QrTokenService $qrTokenService)
     {
         $user = auth()->user();
+        $inscripcion = null;
 
-        // Verificar que el evento tenga cupos disponibles
         if ($evento->capacidad_actual <= 0) {
             return back()->with('error', 'No hay cupos disponibles para este evento.');
         }
 
-        // Verificar que el usuario no esté ya inscrito en este evento
         $yaInscrito = Inscripcion::where('id_user', $user->id)
             ->where('id_evento', $evento->id)
             ->exists();
 
         if ($yaInscrito) {
-            return back()->with('error', 'Ya estás inscrito en este evento.');
+            return back()->with('error', 'Ya estas inscrito en este evento.');
         }
 
         $quiereParqueadero = $request->boolean('con_parqueadero');
         $parqueadero = $evento->parqueadero;
 
-        // Validar parqueadero si lo solicitó
         if ($quiereParqueadero) {
-            if (!$parqueadero || $parqueadero->cupos_disponibles <= 0) {
+            if (! $parqueadero || $parqueadero->cupos_disponibles <= 0) {
                 return back()->with('error', 'No hay cupos de parqueadero disponibles.');
             }
 
-            // Verificar que no tenga ya un parqueadero en este evento
             $yaConParqueadero = Inscripcion::where('id_user', $user->id)
                 ->where('id_evento', $evento->id)
                 ->whereNotNull('id_parqueadero')
@@ -50,28 +49,33 @@ class InscripcionController extends Controller
             }
         }
 
-        DB::transaction(function () use ($user, $evento, $parqueadero, $quiereParqueadero) {
-            // Crear inscripción
-            Inscripcion::create([
-                'id_user'       => $user->id,
-                'id_evento'     => $evento->id,
+        DB::transaction(function () use ($user, $evento, $parqueadero, $quiereParqueadero, $qrTokenService, &$inscripcion): void {
+            $inscripcion = Inscripcion::create([
+                'id_user' => $user->id,
+                'id_evento' => $evento->id,
                 'id_parqueadero' => ($quiereParqueadero && $parqueadero) ? $parqueadero->id : null,
+                'estado_check_in' => Inscripcion::STATUS_PENDING,
+                'qr_emitido_at' => now(),
+                'qr_expira_at' => $qrTokenService->expiresAtForEvent($evento),
             ]);
 
-            // Decrementar cupo del evento
             $evento->decrement('capacidad_actual');
 
-            // Decrementar cupo del parqueadero si aplica
             if ($quiereParqueadero && $parqueadero) {
                 $parqueadero->decrement('cupos_disponibles');
             }
         });
 
-        return back()->with('success', '¡Inscripción realizada exitosamente!');
+        if ($inscripcion) {
+            $inscripcion = $qrTokenService->syncInscripcion($inscripcion->loadMissing(['user', 'evento']));
+            event(new InscripcionRegistrada($inscripcion));
+        }
+
+        return back()->with('success', 'Inscripcion realizada exitosamente. Recibiras el QR por correo.');
     }
 
     /**
-     * Cancelar la inscripción del usuario autenticado en un evento.
+     * Cancelar la inscripcion del usuario autenticado en un evento.
      */
     public function destroy(Evento $evento)
     {
@@ -81,15 +85,13 @@ class InscripcionController extends Controller
             ->where('id_evento', $evento->id)
             ->first();
 
-        if (!$inscripcion) {
-            return back()->with('error', 'No tienes una inscripción activa en este evento.');
+        if (! $inscripcion) {
+            return back()->with('error', 'No tienes una inscripcion activa en este evento.');
         }
 
-        DB::transaction(function () use ($inscripcion, $evento) {
-            // Devolver cupo al evento
+        DB::transaction(function () use ($inscripcion, $evento): void {
             $evento->increment('capacidad_actual');
 
-            // Devolver cupo al parqueadero si tenía
             if ($inscripcion->id_parqueadero && $inscripcion->parqueadero) {
                 $inscripcion->parqueadero->increment('cupos_disponibles');
             }
@@ -97,6 +99,6 @@ class InscripcionController extends Controller
             $inscripcion->delete();
         });
 
-        return back()->with('success', 'Tu inscripción ha sido cancelada.');
+        return back()->with('success', 'Tu inscripcion ha sido cancelada.');
     }
 }
